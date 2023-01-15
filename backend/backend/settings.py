@@ -1,22 +1,28 @@
 from pathlib import Path
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
+# путь к папке проекта
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
+# ключ безопасности. используется ядром джанго и подсист.разграничения доступа
 
-# SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-tu$&!j*=-ha2%6@l8_pv-9fkcxd@hm%b_hyoo98p4b03*he)&e'
 
-# SECURITY WARNING: don't run with debug turned on in production!
+# дебаг режим
+
 DEBUG = True
 
 ALLOWED_HOSTS = []
 
 
-# Application definition
+# список зарегистрированных приложений
+# admin - админский сайт джанго
+# auth - встроенная система разграничения доступа, использ.админкой
+# contenttypes - хранит список всех моделей. исп-ся для полиморфных связей.
+# sessions - обрабатывает серверные сессии. исп-ся админкой
+# messages - выводит всплывающие сообщения. исп-ся админкой
+# staticfiles - обрабатывает статику
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -30,6 +36,15 @@ INSTALLED_APPS = [
     'users'
 ]
 
+# Посредник, обрабатывает запрос перед отправкой во view
+# SecurityMiddleware - доп. защита от сетевых атак
+# SessionMiddleware - обрабатывает серверные сессии
+# CommonMiddleware - участрует в предварительной обработке запроса (?)
+# CsrfViewMiddleware - защита от межсайтовых атак
+# AuthenticationMiddleware - добавляет атрибут, хранящий текущего пользователя
+# MessageMiddleware - обрабатывает высплывающие сообщения
+# XFrameOptionsMiddleware - доп. зашита от сетевых атак
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -40,6 +55,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+# путь к маршрутам на уровне проекта
 ROOT_URLCONF = 'backend.urls'
 
 TEMPLATES = [
@@ -61,8 +77,7 @@ TEMPLATES = [
 WSGI_APPLICATION = 'backend.wsgi.application'
 
 
-# Database
-# https://docs.djangoproject.com/en/4.1/ref/settings/#databases
+# настройка БД
 
 DATABASES = {
     'default': {
@@ -91,20 +106,22 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
-# Internationalization
-# https://docs.djangoproject.com/en/4.1/topics/i18n/
+# язык для сплывающих сообщений и админки
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'ru'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Europe/Moscow'
+
+# будут ли системные сообщения автоматом переводиться на язык из LANGUAGE_CODE
 
 USE_I18N = True
+
+# будет ли джанго хранить значения даты и времени с отметкой о TIME_ZONE
 
 USE_TZ = True
 
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/4.1/howto/static-files/
+# путь до статики
 
 STATIC_URL = 'static/'
 
