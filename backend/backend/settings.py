@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 # путь к папке проекта
@@ -33,7 +34,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'recipes',
-    'users'
+    'users',
+    'api'
 ]
 
 # Посредник, обрабатывает запрос перед отправкой во view
@@ -105,7 +107,23 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+TEMPLATES_DIR = os.path.join(BASE_DIR, "templates")
 
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [TEMPLATES_DIR],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.debug',
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+            ],
+        },
+    },
+]
 # язык для сплывающих сообщений и админки
 
 LANGUAGE_CODE = 'ru'
@@ -123,7 +141,11 @@ USE_TZ = True
 
 # путь до статики
 
-STATIC_URL = 'static/'
+STATIC_ROOT = ''
+
+STATIC_URL = '/static/'
+
+STATICFILES_DIRS = ('static',)
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field

@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Recipe, Tag, Ingredients, Product, Measure
+from .models import Recipe, Tag, Ingredient, Product, Measure
 
 
 class RecipeAdmin(admin.ModelAdmin):
@@ -8,51 +8,51 @@ class RecipeAdmin(admin.ModelAdmin):
     list_display = (
         'id',
         'author',
-        'title',
+        'name',
         'image',
         'text',
-        'duration'
+        'cooking_time',
     )
     # поля, которые должны вести на страницу правки
     list_display_links = (
-        'title',
+        'name',
         'text'
     )
     # поля по которых должна выполняться фильтация
     search_fields = (
         'author',
-        'title',
+        'name',
         'text'
     )
 
 
 class TagAdmin(admin.ModelAdmin):
-    list_display = ('title', 'color', 'slug')
-    list_display_links = ('title', 'slug')
-    search_fields = ('title', 'slug')
+    list_display = ('name', 'color', 'slug')
+    list_display_links = ('name', 'slug')
+    search_fields = ('name', 'slug')
 
 
-class IngredientsAdmin(admin.ModelAdmin):
-    list_display = ('title', 'amount', 'measure')
-    list_display_links = ('title', 'amount')
-    search_fields = ('title', 'amount')
+class IngredientAdmin(admin.ModelAdmin):
+    list_display = ('name', 'measurement_unit')
+    list_display_links = ('name',)
+    search_fields = ('name',)
 
 
 class ProductsAdmin(admin.ModelAdmin):
-    list_display = ('title',)
-    list_display_links = ('title',)
-    search_fields = ('title',)
+    list_display = ('name',)
+    list_display_links = ('name',)
+    search_fields = ('name',)
 
 
 class MeasureAdmin(admin.ModelAdmin):
-    list_display = ('title',)
-    list_display_links = ('title',)
-    search_fields = ('title',)
+    list_display = ('name',)
+    list_display_links = ('name',)
+    search_fields = ('name',)
 
 
 # регистрация моделей в панели администратора
 admin.site.register(Recipe, RecipeAdmin)
 admin.site.register(Tag, TagAdmin)
-admin.site.register(Ingredients, IngredientsAdmin)
+admin.site.register(Ingredient, IngredientAdmin)
 admin.site.register(Product, ProductsAdmin)
 admin.site.register(Measure, MeasureAdmin)
