@@ -1,4 +1,5 @@
 import os
+from datetime import timedelta
 from pathlib import Path
 
 # путь к папке проекта
@@ -35,9 +36,26 @@ INSTALLED_APPS = [
     'rest_framework',
     'recipes',
     'users',
-    'api'
+    'api',
+    'djoser'
 ]
 
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ],
+}
+
+
+SIMPLE_JWT = {
+    # Устанавливаем срок жизни токена
+   'ACCESS_TOKEN_LIFETIME': timedelta(days=30),
+   'AUTH_HEADER_TYPES': ('Bearer',),
+}
 # Посредник, обрабатывает запрос перед отправкой во view
 # SecurityMiddleware - доп. защита от сетевых атак
 # SessionMiddleware - обрабатывает серверные сессии

@@ -1,3 +1,4 @@
+from django.core.validators import MinLengthValidator
 from django.db import models
 
 from users.models import User
@@ -8,7 +9,8 @@ class Recipe(models.Model):
         User,
         on_delete=models.CASCADE,
         related_name='recipes',
-        verbose_name='Автор'
+        verbose_name='Автор',
+        max_length=200
     )
     name = models.CharField(
         verbose_name='Название',
@@ -32,6 +34,10 @@ class Recipe(models.Model):
     )
     cooking_time = models.IntegerField(
         verbose_name='Время приготовления',
+        validators=[
+            MinLengthValidator(1,
+                               'поле принимает значения больше единицы')
+        ]
     )
     pub_date = models.DateTimeField(
         auto_now_add=True,
@@ -51,15 +57,19 @@ class Recipe(models.Model):
 
 class Tag(models.Model):
     name = models.CharField(
-        verbose_name='Тег',
-        max_length=55
+        verbose_name='Название',
+        max_length=200,
+        unique=True
     )
     color = models.CharField(
-        verbose_name='HEX-код',
-        max_length=11
+        verbose_name='HEX-код цвета',
+        max_length=7,
+        unique=True
     )
     slug = models.SlugField(
-        verbose_name='Слаг'
+        verbose_name='Слаг',
+        max_length=200,
+        unique=True
     )
 
     class Meta:
@@ -72,10 +82,14 @@ class Tag(models.Model):
 
 class Ingredient(models.Model):
     name = models.CharField(
+        verbose_name='Название',
         max_length=255,
+        unique=True
     )
     measurement_unit = models.CharField(
-        max_length=255,
+        verbose_name='Единица измерения',
+        max_length=155,
+        unique=True
     )
 
     class Meta:
@@ -87,10 +101,10 @@ class Ingredient(models.Model):
                 name='unique measurement_unit')]
 
 
-class IngredientsRecipe(models.Model):
+class IngredientAmount(models.Model):
     recipe = models.ForeignKey(
         Recipe,
-        related_name='ingredients_recipe',
+        related_name='recipe_ingredients',
         on_delete=models.CASCADE
     )
     ingredients = models.ForeignKey(
@@ -109,7 +123,7 @@ class IngredientsRecipe(models.Model):
                 name='unique ingredient')]
 
 
-class Follow(models.Model):
+class Subscribe(models.Model):
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -123,27 +137,23 @@ class Follow(models.Model):
         verbose_name="Автор"
     )
 
-class Product(models.Model):
-    name = models.CharField(
-        verbose_name='Название',
-        max_length=255,
-        unique=True
+
+class FavoriteRecipe(models.Model):
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE
+    )
+    recipe = models.ManyToManyField(
+        Recipe,
     )
 
-    class Meta:
-        verbose_name = 'Продукт'
-        verbose_name_plural = 'Продукты'
 
-class Measure(models.Model):
-    name = models.CharField(
-        verbose_name='Название',
-        max_length=155,
-        unique=True
+class ShoppingCart(models.Model):
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE
     )
-
-    class Meta:
-        verbose_name = 'Единица измерения'
-        verbose_name_plural = 'Единицы измерения'
-
-
+    recipe = models.ManyToManyField(
+        Recipe,
+    )
 

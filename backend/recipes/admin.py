@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Recipe, Tag, Ingredient, Product, Measure
+from .models import Recipe, Tag, Ingredient
 
 
 class RecipeAdmin(admin.ModelAdmin):
@@ -38,21 +38,7 @@ class IngredientAdmin(admin.ModelAdmin):
     search_fields = ('name',)
 
 
-class ProductsAdmin(admin.ModelAdmin):
-    list_display = ('name',)
-    list_display_links = ('name',)
-    search_fields = ('name',)
-
-
-class MeasureAdmin(admin.ModelAdmin):
-    list_display = ('name',)
-    list_display_links = ('name',)
-    search_fields = ('name',)
-
-
 # регистрация моделей в панели администратора
 admin.site.register(Recipe, RecipeAdmin)
 admin.site.register(Tag, TagAdmin)
 admin.site.register(Ingredient, IngredientAdmin)
-admin.site.register(Product, ProductsAdmin)
-admin.site.register(Measure, MeasureAdmin)
