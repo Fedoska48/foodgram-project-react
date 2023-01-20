@@ -12,7 +12,8 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 
 from backend.api.serializers import RecipeSerializer, TagSerializer, \
     IngredientSerializer, CreateTokenSerializer, CreateUserSerializer, \
-    UserSerializer
+    UserSerializer, ShoppingCartSerializer, FavoriteRecipeSerializer, \
+    SubscribeSerializer
 from backend.backend import settings
 from backend.recipes.models import Recipe, Tag, Ingredient, \
     Subscribe, FavoriteRecipe, ShoppingCart
@@ -69,7 +70,7 @@ class UserViewSet(viewsets.ModelViewSet):
         permission_classes=[IsAuthenticated],
     )
     def me(self, request):
-        """Получение данных своей учётной записи."""
+        """Текущий пользователь."""
         if request.method == 'GET':
             serializer = UserSerializer(request.user)
             return Response(serializer.data)
@@ -80,6 +81,23 @@ class UserViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         serializer.save(role=request.user.role)
         return Response(serializer.data)
+
+    @action(
+        methods=(['PATCH']),
+        permission_classes=[IsAuthenticated],
+    )
+    def set_password(self, request):
+        """Изменение пароля."""
+        pass
+
+    @action(
+        detail=False,
+        methods=(['GET']),
+        permission_classes=[IsAuthenticated],
+    )
+    def subscriptions(self, request):
+        """Мои подписки."""
+        pass
 
 
 @api_view(['POST'])
