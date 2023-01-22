@@ -115,10 +115,33 @@ class FoodgramUserViewSet(UserViewSet):
     serializer_class = FoodgramUserSerializer
     lookup_field = 'username'
 
-    @action(detail=False, methods=['get', ])
+    @action(
+        detail=False,
+        methods=['GET', ],
+        permission_classes=[IsAuthenticated]
+    )
     def subscriptions(self, request):
-        pass
+        queryset = User.objects.filter(following__user=request.user).select_related('author')
+        serializer = SubscribeSerializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
-    @action(detail=True, methods=['post', 'delete'])
+    @action(
+        detail=True,
+        methods=['POST', 'DELETE'],
+        permission_classes=[IsAuthenticated, ]
+    )
     def subscribe(self, request, pk):
-        pass
+        author = get_object_or_404(User, id=pk)
+        if request.method == 'POST':
+            if request.user == author:
+                return Response({'errors': 'Попытка подписаться на себя'},
+                                status=status.HTTP_400_BAD_REQUEST)
+            data = Subscribe.objects.get_or_create(user=request.user, author=author)
+            serializer = FavoriteRecipeSerializer(data=data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            data = Subscribe.objects.get_object_or_404(user=request.user, author=author)
+            data.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
