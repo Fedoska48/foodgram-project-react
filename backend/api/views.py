@@ -1,8 +1,12 @@
+from datetime import datetime
 from smtplib import SMTPResponseException
 
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
+from django.db.models import Sum
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
+from djoser.views import UserViewSet
 from rest_framework.response import Response
 from rest_framework import status, viewsets
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -13,140 +17,108 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from backend.api.serializers import RecipeSerializer, TagSerializer, \
     IngredientSerializer, CreateTokenSerializer, CreateUserSerializer, \
     UserSerializer, ShoppingCartSerializer, FavoriteRecipeSerializer, \
-    SubscribeSerializer
+    SubscribeSerializer, FoodgramUserSerializer
 from backend.backend import settings
 from backend.recipes.models import Recipe, Tag, Ingredient, \
-    Subscribe, FavoriteRecipe, ShoppingCart
+    Subscribe, FavoriteRecipe, ShoppingCart, IngredientAmount
 from backend.users.models import User
 from .permissions import IsAdminUser
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
-    """Полный цикл CRUD"""
+    """Кастомный вьюсет рецептов модели Recipe."""
     queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
 
+    @action(detail=False, methods=['GET', ])
+    def download_shopping_cart(self, request):
+        shopping_cart = IngredientAmount.objects.filter(
+            recipe__shoppingcart__user=request.user).values(
+            'ingredient__name', 'ingredient__measurement_unit').annotate(
+                total_amount=Sum('amount'))
+        text = [f'Список покупок:\n',
+                f'Ингридиент:{ingridient["ingredient__name"]};\n'
+                f'Ингридиент:{ingridient["ingredient__measurement_unit"]};\n'
+                f'Ингридиент:{ingridient["amount"]}.\n'
+                for ingridient in shopping_cart
+                ]
+        date = datetime.today()
+        filename = f'{date}_shopping_list.txt'
+        response = HttpResponse(text, content_type='text/plain')
+        response['Content-Disposition'] = f'attachment; filename={filename}'
+
+    @action(
+        detail=True,
+        methods=['POST', 'DELETE'],
+        permission_classes=[IsAuthenticated, ]
+    )
+    def shopping_cart(self, request, pk):
+        recipe = get_object_or_404(Recipe, id=pk)
+        if request.method == 'POST':
+            if ShoppingCart.objects.filter(user=request.user,
+                                           recipe__id=pk).exists():
+                return Response({'errors': 'Рецепт уже в списке покупок'},
+                                status=status.HTTP_400_BAD_REQUEST)
+            shopping_cart = ShoppingCart.object.create(user=request.user,
+                                                       recipe=recipe)
+            serializer = ShoppingCartSerializer(data=shopping_cart)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        if request.method == 'DELETE':
+            shopping_cart = get_object_or_404(ShoppingCart, user=request.user,
+                                              recipe=recipe)
+            shopping_cart.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(
+        detail=True,
+        methods=['POST', 'DELETE'],
+        permission_classes=[IsAuthenticated, ]
+    )
+    def favorite(self, request, pk):
+        recipe = get_object_or_404(Recipe, id=pk)
+        if request.method == 'POST':
+            if FavoriteRecipe.objects.all(user=request.user,
+                                          recipe__id=pk).exists():
+                return Response({'errors': 'Рецепт уже в избранном'},
+                                status=status.HTTP_400_BAD_REQUEST)
+            favorite = FavoriteRecipe.object.create(user=request.user,
+                                                    recipe=recipe)
+            serializer = FavoriteRecipeSerializer(data=favorite)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        if request.method == 'DELETE':
+            favorite = get_object_or_404(FavoriteRecipe, user=request.user,
+                                         recipe=recipe)
+            favorite.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
-    """GET-списка тегов и GET-конкретного тега"""
+    """Стандартный ридонли вьюсет тегов модели Tag."""
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
-    """GET-list, GET-detail"""
+    """Стандартный ридонли вьюсет ингридиентов модели Ingredient."""
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
 
 
-class SubscribeViewSet(viewsets.ModelViewSet):
-    """Мои подписки GET, подписаться POST и отписаться DEL"""
-    queryset = Subscribe.objects.all()
-    serializer_class = SubscribeSerializer
-
-
-class FavoriteRecipeViewSet(viewsets.ModelViewSet):
-    """POST добавл. рецепта в избранное и DEL удал. рецепта в избранное"""
-    queryset = FavoriteRecipe.objects.all()
-    serializer_class = FavoriteRecipeSerializer
-
-
-class ShoppingCartViewSet(viewsets.ModelViewSet):
-    """Скачать список покупок (GET), добавить (POST) и удалить рецепт (DEL)"""
-    queryset = ShoppingCart.objects.all()
-    serializer_class = ShoppingCartSerializer
-
-
-class UserViewSet(viewsets.ModelViewSet):
-    """ViewSet модели User."""
+class FoodgramUserViewSet(UserViewSet):
+    """Кастомный ViewSet модели User."""
     queryset = User.objects.all()
     permission_classes = (IsAdminUser,)
-    serializer_class = UserSerializer
+    serializer_class = FoodgramUserSerializer
     lookup_field = 'username'
 
-    @action(
-        detail=False,
-        methods=(['GET', 'PATCH']),
-        permission_classes=[IsAuthenticated],
-    )
-    def me(self, request):
-        """Текущий пользователь."""
-        if request.method == 'GET':
-            serializer = UserSerializer(request.user)
-            return Response(serializer.data)
-
-        serializer = UserSerializer(
-            request.user, data=request.data, partial=True,
-        )
-        serializer.is_valid(raise_exception=True)
-        serializer.save(role=request.user.role)
-        return Response(serializer.data)
-
-    @action(
-        methods=(['PATCH']),
-        permission_classes=[IsAuthenticated],
-    )
-    def set_password(self, request):
-        """Изменение пароля."""
-        pass
-
-    @action(
-        detail=False,
-        methods=(['GET']),
-        permission_classes=[IsAuthenticated],
-    )
+    @action(detail=False, methods=['get', ])
     def subscriptions(self, request):
-        """Мои подписки."""
         pass
 
-
-@api_view(['POST'])
-@permission_classes([AllowAny])
-def create_user(request):
-    """Создание нового пользователя."""
-    serializer = CreateUserSerializer(data=request.data)
-    serializer.is_valid(raise_exception=True)
-    username = serializer.validated_data.get('username')
-    email = serializer.validated_data.get('email')
-    user, created = User.objects.get_or_create(username=username, email=email)
-    token = default_token_generator.make_token(user)
-
-    try:
-        send_mail(
-            'confirmation code',
-            token,
-            settings.MAILING_EMAIL,
-            [email],
-            fail_silently=False,
-        )
-        return Response(data=serializer.data, status=status.HTTP_200_OK)
-    except SMTPResponseException:
-        user.delete()
-        return Response(
-            data={'error': 'Ошибка при отправки кода подтверждения!'},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        )
-
-
-@api_view(['POST'])
-@permission_classes([AllowAny])
-def create_token(request):
-    """Создание JWT-токена для пользователей."""
-    serializer = CreateTokenSerializer(data=request.data)
-    serializer.is_valid(raise_exception=True)
-    user = get_object_or_404(
-        User,
-        username=serializer.validated_data.get('username')
-    )
-    confirmation_code = serializer.validated_data.get('confirmation_code')
-    token = default_token_generator.check_token(user, confirmation_code)
-
-    if token == serializer.validated_data.get('confirmation_code'):
-        jwt_token = RefreshToken.for_user(user)
-        return Response(
-            {'token': f'{jwt_token}'}, status=status.HTTP_200_OK
-        )
-    return Response(
-        {'message': 'Отказано в доступе'},
-        status=status.HTTP_400_BAD_REQUEST
-    )
+    @action(detail=True, methods=['post', 'delete'])
+    def subscribe(self, request, pk):
+        pass

@@ -1,37 +1,20 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
-from .views import create_token, create_user, UserViewSet, TagViewSet, \
-    RecipeViewSet, IngredientViewSet
+from .views import (TagViewSet, RecipeViewSet,
+                   IngredientViewSet, FoodgramUserViewSet)
 
 app_name = 'api'
 
 router = DefaultRouter()
 
-# user
-router.register(r'users', UserViewSet, basename='users')
-# subscribe
-router.register(r'users/(?P<user_id>\d+)/subscribe/', TagViewSet,
-                basename='tags')
-# tag
-router.register(r'tags', TagViewSet, basename='tags')
-# recipe
-router.register(r'recipes', RecipeViewSet, basename='recipes')
-# ingredient
-router.register(r'ingredients', IngredientViewSet, basename='ingredients')
-# shopping_cart
-router.register(r'recipes/download_shopping_cart/', TagViewSet,
-                basename='tags')
-router.register(r'recipes/(?P<recipe_id>\d+)/shopping_cart/', TagViewSet,
-                basename='tags')
-# favorite
-router.register(r'recipes/(?P<recipe_id>\d+)/favorite/', TagViewSet,
-                basename='tags')
+router.register('users', FoodgramUserViewSet, basename='users')
+router.register('recipes', RecipeViewSet, basename='recipes')
+router.register('tags', TagViewSet, basename='tags')
+router.register('ingredients', IngredientViewSet, basename='ingredients')
 
 urlpatterns = [
-    path('v1/', include(router.urls)),
-    path('v1/auth/token/', include([
-        path('login/', create_token),
-        path('logout/', delete_token)
-    ]))
+    path('', include(router.urls)),
+    path('', include('djoser.urls')),
+    path('auth/', include('djoser.urls.jwt')),
 ]

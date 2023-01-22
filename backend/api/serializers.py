@@ -58,7 +58,7 @@ class RecipeSerializer(serializers.ModelSerializer):
 
     def get_ingredients(self, obj):
         queryset = IngredientAmount.objects.filter(recipe=obj)
-        return IngredientAmounSerializer(queryset, many=True)
+        return IngredientAmountSerializer(queryset, many=True)
 
     def get_is_favorited(self, obj):
         request = self.context.get('request')
@@ -73,7 +73,7 @@ class RecipeSerializer(serializers.ModelSerializer):
         return ShoppingCart.objects.filter(user=request.user, recipe=obj).exists()
 
 
-class UserSerializer(serializers.ModelSerializer):
+class FoodgramUserSerializer(serializers.ModelSerializer):
     """Serializer модели User."""
 
     class Meta:
