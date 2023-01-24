@@ -8,27 +8,32 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet
 from rest_framework.response import Response
-from rest_framework import status, viewsets
+from rest_framework import status, viewsets, request
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.filters import SearchFilter
 from rest_framework.permissions import AllowAny, IsAuthenticated
 
-from backend.api.serializers import RecipeSerializer, TagSerializer, \
+from api.serializers import RecipeSerializer, TagSerializer, \
     IngredientSerializer, CreateTokenSerializer, CreateUserSerializer, \
-    UserSerializer, ShoppingCartSerializer, FavoriteRecipeSerializer, \
+    ShoppingCartSerializer, FavoriteRecipeSerializer, \
     SubscribeSerializer, FoodgramUserSerializer
-from backend.backend import settings
-from backend.recipes.models import Recipe, Tag, Ingredient, \
-    Subscribe, FavoriteRecipe, ShoppingCart, IngredientAmount
-from backend.users.models import User
+from recipes.models import Recipe, Tag, Ingredient, \
+    Subscribe, FavoriteRecipe, ShoppingCart, IngredientInRecipe
+from users.models import User
 from .permissions import IsAdminUser
+from .serializers import IngredientInRecipeSerializer, RecipeReadSerializer
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
     """Кастомный вьюсет рецептов модели Recipe."""
     queryset = Recipe.objects.all()
-    serializer_class = RecipeSerializer
+    serializer_class = RecipeReadSerializer
+
+    def get_serializer_class(self):
+        if self.action == 'get':
+            return RecipeReadSerializer
+        return RecipeReadSerializer
 
     @action(detail=False, methods=['GET', ])
     def download_shopping_cart(self, request):
@@ -36,10 +41,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
             recipe__shoppingcart__user=request.user).values(
             'ingredient__name', 'ingredient__measurement_unit').annotate(
                 total_amount=Sum('amount'))
-        text = [f'Список покупок:\n',
+        text = [(f'Список покупок:\n',
                 f'Ингридиент:{ingridient["ingredient__name"]};\n'
                 f'Ингридиент:{ingridient["ingredient__measurement_unit"]};\n'
-                f'Ингридиент:{ingridient["amount"]}.\n'
+                f'Ингридиент:{ingridient["amount"]}.\n')
                 for ingridient in shopping_cart
                 ]
         date = datetime.today()
@@ -50,7 +55,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     @action(
         detail=True,
         methods=['POST', 'DELETE'],
-        permission_classes=[IsAuthenticated, ]
+        # permission_classes=[IsAuthenticated, ]
     )
     def shopping_cart(self, request, pk):
         recipe = get_object_or_404(Recipe, id=pk)
@@ -74,7 +79,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     @action(
         detail=True,
         methods=['POST', 'DELETE'],
-        permission_classes=[IsAuthenticated, ]
+        # permission_classes=[IsAuthenticated, ]
     )
     def favorite(self, request, pk):
         recipe = get_object_or_404(Recipe, id=pk)
@@ -111,14 +116,14 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
 class FoodgramUserViewSet(UserViewSet):
     """Кастомный ViewSet модели User."""
     queryset = User.objects.all()
-    permission_classes = (IsAdminUser,)
+    # permission_classes = (IsAdminUser,)
     serializer_class = FoodgramUserSerializer
     lookup_field = 'username'
 
     @action(
         detail=False,
         methods=['GET', ],
-        permission_classes=[IsAuthenticated]
+        # permission_classes=[IsAuthenticated]
     )
     def subscriptions(self, request):
         queryset = User.objects.filter(following__user=request.user).select_related('author')
@@ -128,7 +133,7 @@ class FoodgramUserViewSet(UserViewSet):
     @action(
         detail=True,
         methods=['POST', 'DELETE'],
-        permission_classes=[IsAuthenticated, ]
+        # permission_classes=[IsAuthenticated, ]
     )
     def subscribe(self, request, pk):
         author = get_object_or_404(User, id=pk)

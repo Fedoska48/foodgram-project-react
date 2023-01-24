@@ -1,4 +1,5 @@
-from django.core.validators import MinLengthValidator
+from django.core.validators import MinLengthValidator, MinValueValidator, \
+    RegexValidator
 from django.db import models
 
 from users.models import User
@@ -26,16 +27,17 @@ class Recipe(models.Model):
     )
     ingredients = models.ManyToManyField(
         'Ingredient',
-        verbose_name='Ингредиенты'
+        verbose_name='Ингредиенты',
+        through='IngredientInRecipe'
     )
     tags = models.ManyToManyField(
         'Tag',
         verbose_name='Теги'
     )
     cooking_time = models.IntegerField(
-        verbose_name='Время приготовления',
+        verbose_name='Время приготовления (минут)',
         validators=[
-            MinLengthValidator(1,
+            MinValueValidator(1,
                                'поле принимает значения больше единицы')
         ]
     )
@@ -64,7 +66,13 @@ class Tag(models.Model):
     color = models.CharField(
         verbose_name='HEX-код цвета',
         max_length=7,
-        unique=True
+        unique=True,
+        validators=[
+            RegexValidator(
+                regex="^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$",
+                message='Внесите данные согласно заданной маске',
+            )
+        ],
     )
     slug = models.SlugField(
         verbose_name='Слаг',
@@ -84,12 +92,10 @@ class Ingredient(models.Model):
     name = models.CharField(
         verbose_name='Название',
         max_length=255,
-        unique=True
     )
     measurement_unit = models.CharField(
         verbose_name='Единица измерения',
         max_length=155,
-        unique=True
     )
 
     class Meta:
@@ -99,9 +105,10 @@ class Ingredient(models.Model):
             models.UniqueConstraint(
                 fields=['name', 'measurement_unit'],
                 name='unique measurement_unit')]
+    def __str__(self):
+        return self.name
 
-
-class IngredientAmount(models.Model):
+class IngredientInRecipe(models.Model):
     recipe = models.ForeignKey(
         Recipe,
         related_name='recipe_ingredients',
@@ -119,8 +126,8 @@ class IngredientAmount(models.Model):
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=['recipe', 'ingredients'],
-                name='unique ingredient')]
+                fields=['recipe', 'ingredients', 'amount'],
+                name='unique ingredient and amount')]
 
 
 class Subscribe(models.Model):
