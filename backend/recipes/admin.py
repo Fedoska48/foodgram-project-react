@@ -1,7 +1,13 @@
 from django.contrib import admin
 
-from .models import Recipe, Tag, Ingredient
+from .models import Recipe, Tag, Ingredient, IngredientInRecipe
 
+
+class IngredientInRecipeInLine(admin.StackedInline):
+    model = IngredientInRecipe
+    extra = 1
+    fields = ('ingredients', 'amount')
+    autocomplete_fields = ('ingredients',)
 
 class RecipeAdmin(admin.ModelAdmin):
     # последовательность имен полей для вывода в списке записей
@@ -12,18 +18,28 @@ class RecipeAdmin(admin.ModelAdmin):
         'image',
         'text',
         'cooking_time',
+        'pub_date',
+        'update'
     )
     # поля, которые должны вести на страницу правки
     list_display_links = (
+        'author',
         'name',
-        'text'
+        'text',
     )
     # поля по которых должна выполняться фильтация
     search_fields = (
-        'author',
         'name',
-        'text'
+        'text',
+        'tags',
+        'author',
+        'tags'
     )
+
+    raw_id_fields = ('author', 'tags')
+    inlines = (IngredientInRecipeInLine,)
+    empty_value_display = '-пусто-'
+    readonly_fields = ('pub_date', 'update')
 
 
 class TagAdmin(admin.ModelAdmin):

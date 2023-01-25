@@ -34,7 +34,7 @@ class Recipe(models.Model):
         'Tag',
         verbose_name='Теги'
     )
-    cooking_time = models.IntegerField(
+    cooking_time = models.PositiveSmallIntegerField(
         verbose_name='Время приготовления (минут)',
         validators=[
             MinValueValidator(1,
@@ -45,8 +45,11 @@ class Recipe(models.Model):
         auto_now_add=True,
         verbose_name="Дата публикации"
     )
-    # is_favorited = models.BooleanField(default=False)
-    # is_in_shopping_cart = models.BooleanField(default=False)
+    update = models.DateTimeField(
+        auto_now=True,
+        verbose_name="Дата обновления"
+    )
+
 
     class Meta:
         verbose_name = 'Рецепт'
@@ -105,8 +108,10 @@ class Ingredient(models.Model):
             models.UniqueConstraint(
                 fields=['name', 'measurement_unit'],
                 name='unique measurement_unit')]
+
     def __str__(self):
-        return self.name
+        return f'{self.name}, {self.measurement_unit}'
+
 
 class IngredientInRecipe(models.Model):
     recipe = models.ForeignKey(
@@ -117,13 +122,17 @@ class IngredientInRecipe(models.Model):
     ingredients = models.ForeignKey(
         Ingredient,
         related_name='recipe_ingredients',
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        verbose_name='Ингредиенты'
     )
-    amount = models.IntegerField(
+    amount = models.PositiveSmallIntegerField(
         verbose_name='Количество',
+        validators=[MinValueValidator(1)]
     )
 
     class Meta:
+        verbose_name = 'Ингредиент в рецепте'
+        verbose_name_plural = 'Ингредиенты в рецепте'
         constraints = [
             models.UniqueConstraint(
                 fields=['recipe', 'ingredients', 'amount'],

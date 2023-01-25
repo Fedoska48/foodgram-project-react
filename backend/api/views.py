@@ -14,7 +14,7 @@ from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.filters import SearchFilter
 from rest_framework.permissions import AllowAny, IsAuthenticated
 
-from api.serializers import RecipeSerializer, TagSerializer, \
+from api.serializers import TagSerializer, \
     IngredientSerializer, CreateTokenSerializer, CreateUserSerializer, \
     ShoppingCartSerializer, FavoriteRecipeSerializer, \
     SubscribeSerializer, FoodgramUserSerializer
@@ -37,7 +37,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['GET', ])
     def download_shopping_cart(self, request):
-        shopping_cart = IngredientAmount.objects.filter(
+        shopping_cart = IngredientInRecipe.objects.filter(
             recipe__shoppingcart__user=request.user).values(
             'ingredient__name', 'ingredient__measurement_unit').annotate(
                 total_amount=Sum('amount'))
