@@ -14,37 +14,38 @@ from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.filters import SearchFilter
 from rest_framework.permissions import AllowAny, IsAuthenticated
 
-from api.serializers import TagSerializer, \
-    IngredientSerializer, CreateTokenSerializer, CreateUserSerializer, \
+from .serializers import TagSerializer, \
+    IngredientSerializer, \
     ShoppingCartSerializer, FavoriteRecipeSerializer, \
-    SubscribeSerializer, FoodgramUserSerializer
+    SubscribeSerializer
 from recipes.models import Recipe, Tag, Ingredient, \
     Subscribe, FavoriteRecipe, ShoppingCart, IngredientInRecipe
 from users.models import User
 from .permissions import IsAdminUser
-from .serializers import IngredientInRecipeSerializer, RecipeReadSerializer
+from .serializers import IngredientInRecipeSerializer, RecipeReadSerializer, \
+    RecipeCreateUpdateSerializer, UserReadSerializer, UserCreateSerializer
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
     """Кастомный вьюсет рецептов модели Recipe."""
     queryset = Recipe.objects.all()
-    serializer_class = RecipeReadSerializer
 
     def get_serializer_class(self):
-        if self.action == 'get':
+        if self.action in ('list', 'retrieve'):
             return RecipeReadSerializer
-        return RecipeReadSerializer
+        return RecipeCreateUpdateSerializer
+        # return RecipeReadSerializer
 
     @action(detail=False, methods=['GET', ])
     def download_shopping_cart(self, request):
         shopping_cart = IngredientInRecipe.objects.filter(
             recipe__shoppingcart__user=request.user).values(
             'ingredient__name', 'ingredient__measurement_unit').annotate(
-                total_amount=Sum('amount'))
+            total_amount=Sum('amount'))
         text = [(f'Список покупок:\n',
-                f'Ингридиент:{ingridient["ingredient__name"]};\n'
-                f'Ингридиент:{ingridient["ingredient__measurement_unit"]};\n'
-                f'Ингридиент:{ingridient["amount"]}.\n')
+                 f'Ингридиент:{ingridient["ingredient__name"]};\n'
+                 f'Ингридиент:{ingridient["ingredient__measurement_unit"]};\n'
+                 f'Ингридиент:{ingridient["amount"]}.\n')
                 for ingridient in shopping_cart
                 ]
         date = datetime.today()
@@ -116,9 +117,13 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
 class FoodgramUserViewSet(UserViewSet):
     """Кастомный ViewSet модели User."""
     queryset = User.objects.all()
+
     # permission_classes = (IsAdminUser,)
-    serializer_class = FoodgramUserSerializer
-    lookup_field = 'username'
+
+    def get_serializer_class(self):
+        if self.action == 'get':
+            return UserReadSerializer
+        return UserCreateSerializer  # есть аналогичный из djoser
 
     @action(
         detail=False,
@@ -126,7 +131,8 @@ class FoodgramUserViewSet(UserViewSet):
         # permission_classes=[IsAuthenticated]
     )
     def subscriptions(self, request):
-        queryset = User.objects.filter(following__user=request.user).select_related('author')
+        queryset = User.objects.filter(
+            following__user=request.user).select_related('author')
         serializer = SubscribeSerializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -141,12 +147,14 @@ class FoodgramUserViewSet(UserViewSet):
             if request.user == author:
                 return Response({'errors': 'Попытка подписаться на себя'},
                                 status=status.HTTP_400_BAD_REQUEST)
-            data = Subscribe.objects.get_or_create(user=request.user, author=author)
+            data = Subscribe.objects.get_or_create(user=request.user,
+                                                   author=author)
             serializer = FavoriteRecipeSerializer(data=data)
             serializer.is_valid(raise_exception=True)
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
-            data = Subscribe.objects.get_object_or_404(user=request.user, author=author)
+            data = Subscribe.objects.get_object_or_404(user=request.user,
+                                                       author=author)
             data.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)

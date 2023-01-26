@@ -1,8 +1,10 @@
+from django.db.models import F
 from rest_framework import serializers
 
 from recipes.models import Recipe, Tag, Ingredient, Subscribe, \
     FavoriteRecipe, ShoppingCart
-from rest_framework.relations import StringRelatedField
+from djoser.serializers import UserCreateSerializer, UserSerializer
+from rest_framework.fields import SerializerMethodField
 from users.models import User
 
 
@@ -11,8 +13,10 @@ from recipes.models import IngredientInRecipe
 
 # USERS ZONE
 
-class UserReadSerializer(serializers.ModelSerializer):
+class UserReadSerializer(UserSerializer):
     """USER for READ: GET: api/users/ :: /api/users/{id}/ :: /api/users/me/."""
+
+    is_subscribed = SerializerMethodField(read_only=True)
 
     class Meta:
         model = User
@@ -25,8 +29,13 @@ class UserReadSerializer(serializers.ModelSerializer):
             'is_subscribed'
         )
 
+    def get_is_subscribed(self, obj):
+        request = self.context.get('request')
+        if request.user.is_anonymous:
+            return False
+        return obj.follow.filter(user=request.user).exists()
 
-class UserCreateSerializer(serializers.ModelSerializer):
+class UserCreateSerializer(UserCreateSerializer):
     """For USER registration: POST: api/users/"""
 
     class Meta:
@@ -61,9 +70,10 @@ class IngredientSerializer(serializers.ModelSerializer):
 
 class IngredientInRecipeSerializer(serializers.ModelSerializer):
     """Ingredients in Recipe serializer. Include in RecipeReadSerializer. OK"""
-    id = serializers.ReadOnlyField(source='ingredient.id')
-    name = serializers.ReadOnlyField(source='ingredient.name')
-    measurement_unit = serializers.ReadOnlyField(
+    id = serializers.PrimaryKeyRelatedField(
+        source='ingredient', queryset=Ingredient.objects.all())
+    name = serializers.StringRelatedField(source='ingredient.name')
+    measurement_unit = serializers.StringRelatedField(
         source='ingredient.measurement_unit')
 
     class Meta:
@@ -97,8 +107,14 @@ class RecipeReadSerializer(serializers.ModelSerializer):
 
     def get_ingredients(self, obj):
         """Custom queryset: filter IngredientInRecipe by recipe."""
-        queryset = IngredientInRecipe.objects.filter(recipe=obj)
-        return IngredientInRecipeSerializer(queryset, many=True)
+        recipe = obj
+        ingredients = recipe.ingredients.values(
+            'id',
+            'name',
+            'measurement_unit',
+            amount=F('recipe_ingredients__amount')
+        )
+        return ingredients
 
     def get_is_favorited(self, obj):
         request = self.context.get('request')
@@ -117,15 +133,22 @@ class RecipeReadSerializer(serializers.ModelSerializer):
 
 class IngredientInRecipeCreateUpdateSerializer(serializers.ModelSerializer):
     """Exists ingredient. New amount. Include RecipeCreateUpdateSerializer"""
+    id = serializers.PrimaryKeyRelatedField(
+        queryset=Ingredient.objects.all())
+    recipe = serializers.PrimaryKeyRelatedField(read_only=True)
+    amount = serializers.IntegerField(write_only=True)
+
     class Meta:
         model = IngredientInRecipe
-        fields = ('id', 'amount')
+        fields = ('id', 'recipe', 'amount')
 
 
 class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
     """"For CU Recipes. POST: api/recipes/"""
     ingredients = IngredientInRecipeCreateUpdateSerializer(many=True)
-    tags = serializers.PrimaryKeyRelatedField(read_only=True)  # точно read_ony?
+    tags = serializers.PrimaryKeyRelatedField(
+        many=True, queryset=Tag.objects.all()
+    )  # точно read_ony?
 
     class Meta:
         model = Recipe

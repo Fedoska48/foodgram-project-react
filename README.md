@@ -3,3 +3,12 @@
 pip freeze > requirements.txt
 
 python manage.py createsuperuser
+
+get_queryset
+list
+retrieve
+create
+perform_create
+update
+perform_update
+destroy
