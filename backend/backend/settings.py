@@ -34,10 +34,12 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'rest_framework.authtoken',
     'recipes',
     'users',
     'api',
-    'djoser'
+    'djoser',
+
 ]
 
 REST_FRAMEWORK = {
@@ -46,10 +48,12 @@ REST_FRAMEWORK = {
     ],
 
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
     ],
 }
-
+APPEND_SLASH=False
 
 SIMPLE_JWT = {
     # Устанавливаем срок жизни токена

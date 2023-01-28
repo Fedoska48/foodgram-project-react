@@ -1,39 +1,43 @@
 from django.db.models import F
+from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
-
+from djoser import serializers as ds
 from recipes.models import Recipe, Tag, Ingredient, Subscribe, \
     FavoriteRecipe, ShoppingCart
-from djoser.serializers import UserCreateSerializer, UserSerializer
+from djoser.serializers import UserCreateSerializer, UserSerializer, \
+    SetPasswordSerializer
 from rest_framework.fields import SerializerMethodField
 from users.models import User
-
 
 from recipes.models import IngredientInRecipe
 
 
 # USERS ZONE
-
 class UserReadSerializer(UserSerializer):
     """USER for READ: GET: api/users/ :: /api/users/{id}/ :: /api/users/me/."""
 
     is_subscribed = SerializerMethodField(read_only=True)
 
-    class Meta:
+    class Meta(ds.UserSerializer.Meta):
         model = User
         fields = (
-            'email',
-            'id',
-            'username',
-            'first_name',
-            'last_name',
-            'is_subscribed'
+            "email",
+            "id",
+            "username",
+            "first_name",
+            "last_name",
+            "is_subscribed"
         )
 
-    def get_is_subscribed(self, obj):
+    def get_is_subscribed(self, user):
         request = self.context.get('request')
         if request.user.is_anonymous:
             return False
-        return obj.follow.filter(user=request.user).exists()
+        return (
+                request.user.is_authenticated
+                and user.follower.filter(user=request.user).exists()
+        )
+
 
 class UserCreateSerializer(UserCreateSerializer):
     """For USER registration: POST: api/users/"""
@@ -47,6 +51,13 @@ class UserCreateSerializer(UserCreateSerializer):
             'last_name',
             'password'
         )
+
+
+class SetPasswordSerializer(SetPasswordSerializer):
+
+    class Meta:
+        model = User
+        fields = ('new_password', 'current_password')
 
 # под вопросом что делать с "Изменение пароля", "Получить токен", "Удаление токена"
 
@@ -89,6 +100,7 @@ class RecipeReadSerializer(serializers.ModelSerializer):
     ingredients = serializers.SerializerMethodField(read_only=True)
     is_favorited = serializers.SerializerMethodField(read_only=True)
     is_in_shopping_cart = serializers.SerializerMethodField(read_only=True)
+    image = Base64ImageField(max_length=None, use_url=True, required=False)
 
     class Meta:
         model = Recipe
@@ -135,12 +147,12 @@ class IngredientInRecipeCreateUpdateSerializer(serializers.ModelSerializer):
     """Exists ingredient. New amount. Include RecipeCreateUpdateSerializer"""
     id = serializers.PrimaryKeyRelatedField(
         queryset=Ingredient.objects.all())
-    recipe = serializers.PrimaryKeyRelatedField(read_only=True)
+    # recipe = serializers.PrimaryKeyRelatedField(read_only=True)
     amount = serializers.IntegerField(write_only=True)
 
     class Meta:
         model = IngredientInRecipe
-        fields = ('id', 'recipe', 'amount')
+        fields = ('id', 'amount')
 
 
 class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
@@ -149,6 +161,7 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
     tags = serializers.PrimaryKeyRelatedField(
         many=True, queryset=Tag.objects.all()
     )  # точно read_ony?
+    image = Base64ImageField(max_length=None, use_url=True, required=False)
 
     class Meta:
         model = Recipe
@@ -161,15 +174,32 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
             'cooking_time'
         )
 
+    def create_ingredients(self, ingredients, recipe):
+        for ingredient in ingredients:
+            IngredientInRecipe.objects.create(
+                recipe=recipe,
+                ingredients=ingredient.get('id'),
+                amount=ingredient.get('amount'),
+            )
+
+    def create(self, validated_data):
+        request = self.context.get('request')
+        ingredients = validated_data.pop('ingredients')
+        tags = validated_data.pop('tags')
+        recipe = Recipe.objects.create(author=request.user, **validated_data)
+        recipe.tags.set(tags)
+        self.create_ingredients(ingredients, recipe)
+        return recipe
 # для delete recipe надо что-то?
 
 class ShoppingCartSerializer(serializers.Serializer):
     """ShoppingCart serializer. POST/DELETE: api/recipes/{id}/shopping_cart/"""
+
     # дописать
 
     class Meta:
         model = ShoppingCart
-        fields = ('user', 'ingredients')
+        fields = ('user', 'recipe')
 
     def to_representation(self, value):
         # ('id', 'name', 'image', 'cooking_time')
@@ -188,10 +218,9 @@ class RecipeFavoriteSerializer(serializers.ModelSerializer):
         fields = ('user', 'recipe')
 
 
-
-
 class SubscribeSerializer(serializers.ModelSerializer):
     """Subscribe serializer."""
+
     # дописать
     class Meta:
         model = Subscribe
@@ -203,6 +232,7 @@ class SubscribeSerializer(serializers.ModelSerializer):
 
 class FavoriteRecipeSerializer(serializers.Serializer):
     """Favorite Recipe serializer."""
+
     # дописать
     class Meta:
         model = FavoriteRecipe

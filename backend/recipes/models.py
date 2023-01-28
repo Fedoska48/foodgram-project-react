@@ -20,7 +20,8 @@ class Recipe(models.Model):
     image = models.ImageField(
         verbose_name='Изображение',
         upload_to='recipes/image/recipes',
-        blank=True
+        blank=True,
+        null=True
     )
     text = models.TextField(
         verbose_name='Текст',

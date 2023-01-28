@@ -6,7 +6,8 @@ from django.core.mail import send_mail
 from django.db.models import Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
-from djoser.views import UserViewSet
+from djoser.serializers import SetPasswordSerializer
+from djoser.views import UserViewSet, TokenCreateView
 from rest_framework.response import Response
 from rest_framework import status, viewsets, request
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -34,7 +35,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
         if self.action in ('list', 'retrieve'):
             return RecipeReadSerializer
         return RecipeCreateUpdateSerializer
-        # return RecipeReadSerializer
 
     @action(detail=False, methods=['GET', ])
     def download_shopping_cart(self, request):
@@ -65,7 +65,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
                                            recipe__id=pk).exists():
                 return Response({'errors': 'Рецепт уже в списке покупок'},
                                 status=status.HTTP_400_BAD_REQUEST)
-            shopping_cart = ShoppingCart.object.create(user=request.user,
+            shopping_cart = ShoppingCart.objects.create(user=request.user,
                                                        recipe=recipe)
             serializer = ShoppingCartSerializer(data=shopping_cart)
             serializer.is_valid(raise_exception=True)
@@ -121,8 +121,10 @@ class FoodgramUserViewSet(UserViewSet):
     # permission_classes = (IsAdminUser,)
 
     def get_serializer_class(self):
-        if self.action == 'get':
+        if self.action in ('list', 'retrieve', 'me'):
             return UserReadSerializer
+        if self.action == 'set_password':
+            return SetPasswordSerializer
         return UserCreateSerializer  # есть аналогичный из djoser
 
     @action(
@@ -158,3 +160,4 @@ class FoodgramUserViewSet(UserViewSet):
                                                        author=author)
             data.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
+
