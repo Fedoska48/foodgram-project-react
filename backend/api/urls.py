@@ -1,6 +1,4 @@
 from django.urls import include, path
-from djoser.urls import authtoken
-from djoser.views import TokenDestroyView, TokenCreateView
 from rest_framework.routers import DefaultRouter
 
 from .views import (TagViewSet, RecipeViewSet,

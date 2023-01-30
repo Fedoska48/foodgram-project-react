@@ -9,8 +9,8 @@ class IngredientInRecipeInLine(admin.StackedInline):
     fields = ('ingredients', 'amount')
     autocomplete_fields = ('ingredients',)
 
+
 class RecipeAdmin(admin.ModelAdmin):
-    # последовательность имен полей для вывода в списке записей
     list_display = (
         'id',
         'author',
@@ -21,13 +21,11 @@ class RecipeAdmin(admin.ModelAdmin):
         'pub_date',
         'update'
     )
-    # поля, которые должны вести на страницу правки
     list_display_links = (
         'author',
         'name',
         'text',
     )
-    # поля по которых должна выполняться фильтация
     search_fields = (
         'name',
         'text',
@@ -54,7 +52,6 @@ class IngredientAdmin(admin.ModelAdmin):
     search_fields = ('name',)
 
 
-# регистрация моделей в панели администратора
 admin.site.register(Recipe, RecipeAdmin)
 admin.site.register(Tag, TagAdmin)
 admin.site.register(Ingredient, IngredientAdmin)

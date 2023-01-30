@@ -2,29 +2,13 @@ import os
 from datetime import timedelta
 from pathlib import Path
 
-# путь к папке проекта
-
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-# ключ безопасности. используется ядром джанго и подсист.разграничения доступа
-
 SECRET_KEY = 'django-insecure-tu$&!j*=-ha2%6@l8_pv-9fkcxd@hm%b_hyoo98p4b03*he)&e'
-
-# дебаг режим
 
 DEBUG = True
 
 ALLOWED_HOSTS = []
-
-
-# список зарегистрированных приложений
-# admin - админский сайт джанго
-# auth - встроенная система разграничения доступа, использ.админкой
-# contenttypes - хранит список всех моделей. исп-ся для полиморфных связей.
-# sessions - обрабатывает серверные сессии. исп-ся админкой
-# messages - выводит всплывающие сообщения. исп-ся админкой
-# staticfiles - обрабатывает статику
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -39,12 +23,12 @@ INSTALLED_APPS = [
     'users',
     'api',
     'djoser',
-
+    'django_filters'
 ]
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.AllowAny',
+        'rest_framework.permissions.IsAdminUser',
     ],
 
     'DEFAULT_AUTHENTICATION_CLASSES': [
@@ -52,22 +36,18 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.SessionAuthentication',
     ],
+    'DEFAULT_FILTER_BACKENDS': [
+        'django_filters.rest_framework.DjangoFilterBackend',
+    ],
+    'PAGE_SIZE': 6,
+    "DEFAULT_PAGINATION_CLASS": "api.pagination.CustomPagination",
 }
-APPEND_SLASH=False
+APPEND_SLASH = False
 
 SIMPLE_JWT = {
-    # Устанавливаем срок жизни токена
-   'ACCESS_TOKEN_LIFETIME': timedelta(days=30),
-   'AUTH_HEADER_TYPES': ('Bearer',),
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=30),
+    'AUTH_HEADER_TYPES': ('Bearer',),
 }
-# Посредник, обрабатывает запрос перед отправкой во view
-# SecurityMiddleware - доп. защита от сетевых атак
-# SessionMiddleware - обрабатывает серверные сессии
-# CommonMiddleware - участрует в предварительной обработке запроса (?)
-# CsrfViewMiddleware - защита от межсайтовых атак
-# AuthenticationMiddleware - добавляет атрибут, хранящий текущего пользователя
-# MessageMiddleware - обрабатывает высплывающие сообщения
-# XFrameOptionsMiddleware - доп. зашита от сетевых атак
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -79,7 +59,6 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-# путь к маршрутам на уровне проекта
 ROOT_URLCONF = 'backend.urls'
 
 TEMPLATES = [
@@ -100,19 +79,12 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'backend.wsgi.application'
 
-
-# настройка БД
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-
-
-# Password validation
-# https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -146,31 +118,20 @@ TEMPLATES = [
         },
     },
 ]
-# язык для сплывающих сообщений и админки
 
 LANGUAGE_CODE = 'ru'
 
 TIME_ZONE = 'Europe/Moscow'
 
-# будут ли системные сообщения автоматом переводиться на язык из LANGUAGE_CODE
-
 USE_I18N = True
 
-# будет ли джанго хранить значения даты и времени с отметкой о TIME_ZONE
-
 USE_TZ = True
-
-
-# путь до статики
 
 STATIC_ROOT = ''
 
 STATIC_URL = '/static/'
 
 STATICFILES_DIRS = ('static',)
-
-# Default primary key field type
-# https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
