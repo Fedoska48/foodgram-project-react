@@ -7,7 +7,7 @@ class IngredientInRecipeInLine(admin.StackedInline):
     model = IngredientInRecipe
     extra = 1
     fields = ('ingredients', 'amount')
-    autocomplete_fields = ('ingredients',)
+    # autocomplete_fields = ('ingredients',)
 
 
 class RecipeAdmin(admin.ModelAdmin):
@@ -15,16 +15,12 @@ class RecipeAdmin(admin.ModelAdmin):
         'id',
         'author',
         'name',
-        'image',
-        'text',
-        'cooking_time',
         'pub_date',
         'update'
     )
     list_display_links = (
         'author',
         'name',
-        'text',
     )
     search_fields = (
         'name',
@@ -34,7 +30,7 @@ class RecipeAdmin(admin.ModelAdmin):
         'tags'
     )
 
-    raw_id_fields = ('author', 'tags')
+    # raw_id_fields = ('author', 'tags')
     inlines = (IngredientInRecipeInLine,)
     empty_value_display = '-пусто-'
     readonly_fields = ('pub_date', 'update')

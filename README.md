@@ -1,17 +1,41 @@
 # praktikum_new_diplom
 
-pip freeze > requirements.txt
+# Проект Foodgram
+Сайт Foodgram, «Продуктовый помощник». Онлайн-сервис и API для него. На этом сервисе пользователи смогут публиковать рецепты, подписываться на публикации других пользователей, добавлять понравившиеся рецепты в список «Избранное», а перед походом в магазин скачивать сводный список продуктов, необходимых для приготовления одного или нескольких выбранных блюд.
 
-python manage.py createsuperuser
+# Foodgram подволяет работать со следующими сущностями:
 
-get_queryset
-list
-retrieve
-create
-perform_create
-update
-perform_update
-destroy
+- Рецепты
+- Теги
+- Ингредиенты
+- Пользователи
 
+Автор [Fedoska48](https://github.com/Fedoska48)
 
-python manage.py makemigrations recipes --empty --name "test"
+41 когорта Яндекс.Практикум (Бекенд на Python)
+
+[//]: # (pip freeze > requirements.txt)
+
+[//]: # ()
+[//]: # (python manage.py createsuperuser)
+
+[//]: # ()
+[//]: # (get_queryset)
+
+[//]: # (list)
+
+[//]: # (retrieve)
+
+[//]: # (create)
+
+[//]: # (perform_create)
+
+[//]: # (update)
+
+[//]: # (perform_update)
+
+[//]: # (destroy)
+
+[//]: # ()
+[//]: # ()
+[//]: # (python manage.py makemigrations recipes --empty --name "add_tags")
