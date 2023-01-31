@@ -53,7 +53,7 @@ class Recipe(models.Model):
     class Meta:
         verbose_name = 'Рецепт'
         verbose_name_plural = 'Рецепты'
-        ordering = ('name',)
+        ordering = ('-pub_date',)
 
     def __str__(self):
         return self.name
@@ -69,6 +69,7 @@ class Tag(models.Model):
         verbose_name='HEX-код цвета',
         max_length=7,
         unique=True,
+        help_text='Например, #49B64E',
         validators=[
             RegexValidator(
                 regex="^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$",
@@ -103,6 +104,7 @@ class Ingredient(models.Model):
     class Meta:
         verbose_name = 'Ингредиент'
         verbose_name_plural = 'Ингредиенты'
+        ordering = ('name',)
         constraints = [
             models.UniqueConstraint(
                 fields=['name', 'measurement_unit'],
@@ -136,6 +138,9 @@ class IngredientInRecipe(models.Model):
             models.UniqueConstraint(
                 fields=['recipe', 'ingredients', 'amount'],
                 name='unique ingredient and amount')]
+
+    def __str__(self):
+        return f'{self.ingredients}: {self.amount}'
 
 
 class Subscribe(models.Model):

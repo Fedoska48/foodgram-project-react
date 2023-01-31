@@ -12,3 +12,6 @@ perform_create
 update
 perform_update
 destroy
+
+
+python manage.py makemigrations recipes --empty --name "test"

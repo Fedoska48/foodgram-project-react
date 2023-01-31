@@ -205,12 +205,14 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
         many=True, queryset=Tag.objects.all()
     )
     image = Base64ImageField(max_length=None, use_url=True, required=False)
+    author = UserReadSerializer(read_only=True, required=False)
 
     class Meta:
         model = Recipe
         fields = (
             'ingredients',
             'tags',
+            'author',
             'image',
             'name',
             'text',
