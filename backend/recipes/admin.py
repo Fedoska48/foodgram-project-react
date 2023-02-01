@@ -6,8 +6,9 @@ from .models import Recipe, Tag, Ingredient, IngredientInRecipe
 class IngredientInRecipeInLine(admin.StackedInline):
     model = IngredientInRecipe
     extra = 1
-    fields = ('ingredients', 'amount')
-    # autocomplete_fields = ('ingredients',)
+    min_num = 1
+    # fields = ('ingredients', 'amount')
+    autocomplete_fields = ('ingredients',)
 
 
 class RecipeAdmin(admin.ModelAdmin):
