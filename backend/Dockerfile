@@ -8,4 +8,3 @@ COPY . .
 CMD ["gunicorn", "foodgram.wsgi:application", "--bind", "0:8000"]
 ONBUILD RUN python manage.py migrate
 ONBUILD RUN python manage.py collectstatic --noinput
-
