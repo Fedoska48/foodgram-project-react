@@ -3,16 +3,16 @@ from datetime import timedelta
 from pathlib import Path
 from dotenv import load_dotenv
 
-
 load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-tu$&!j*=-ha2%6@l8_pv-9fkcxd@hm%b_hyoo98p4b03*he)&e')
+SECRET_KEY = os.getenv('SECRET_KEY',
+                       'django-insecure-tu$&!j*=-ha2%6@l8_pv-9fkcxd@hm%b_hyoo98p4b03*he)&e')
 
 DEBUG = True
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', ['*',])
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', ['*', ])
 
 INSTALLED_APPS = [
     'django.contrib.admin',
