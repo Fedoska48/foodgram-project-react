@@ -8,7 +8,6 @@ from djoser.serializers import (UserCreateSerializer, UserSerializer,
                                 SetPasswordSerializer)
 from rest_framework.fields import SerializerMethodField
 from users.models import User
-
 from recipes.models import IngredientInRecipe
 
 
@@ -33,10 +32,8 @@ class UserReadSerializer(UserSerializer):
         request = self.context.get('request')
         if request.user.is_anonymous:
             return False
-        return (
-                request.user.is_authenticated
-                and user.follower.filter(user=request.user).exists()
-        )
+        return (request.user.is_authenticated and user.follower.filter(
+            user=request.user).exists())
 
 
 class UserCreateSerializer(UserCreateSerializer):

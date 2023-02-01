@@ -3,6 +3,7 @@ from django.contrib.auth.admin import UserAdmin
 
 from .models import User
 
+
 class RecipeAdmin(admin.ModelAdmin):
     list_display = (
         'id',
@@ -18,5 +19,6 @@ class RecipeAdmin(admin.ModelAdmin):
     search_fields = (
         'username',
     )
+
 
 admin.site.register(User, UserAdmin)
