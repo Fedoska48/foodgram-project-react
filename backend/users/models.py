@@ -34,7 +34,6 @@ class User(AbstractUser):
         blank=True,
         null=True,
     )
-    is_subscribed = models.BooleanField(default=False)
 
     @property
     def is_admin(self):
