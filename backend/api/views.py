@@ -3,13 +3,15 @@ from datetime import datetime
 from django.db.models import Sum, F
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
 from djoser.serializers import SetPasswordSerializer
 from djoser.views import UserViewSet
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework import status, viewsets, filters
 from rest_framework.decorators import action
-from django_filters.rest_framework import DjangoFilterBackend
 
+from .filters import RecipeFilter
 from .pagination import StandartPagination
 from .permissions import IsAuthorOrAdminOrReadOnly
 from .serializers import (TagSerializer, IngredientSerializer,
@@ -27,7 +29,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     """Кастомный вьюсет рецептов модели Recipe."""
     queryset = Recipe.objects.all()
     permission_classes = [IsAuthorOrAdminOrReadOnly]
-    filter_backends = [DjangoFilterBackend]
+    filterset_class = RecipeFilter
     pagination_class = StandartPagination
 
     def get_serializer_class(self):
@@ -37,20 +39,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
             return RecipeShortSerializer
         return RecipeCreateUpdateSerializer
 
-    @action(
-        detail=False,
-        methods=['GET'],
-        permission_classes=[IsAuthorOrAdminOrReadOnly]
-    )
-    def download_shopping_cart(self, request):
-        """Скачать список покупок."""
-        user = request.user
-        ingredients = IngredientInRecipe.objects.filter(
-            recipe__shopping_cart__user=user).values(
-            name=F('ingredients__name'),
-            measurement_unit=F('ingredients__measurement_unit')).annotate(
-            amount=Sum('amount')
-        )
+    @staticmethod
+    def export_file(ingredients):
         data = []
         for ingredient in ingredients:
             data.append(
@@ -64,6 +54,22 @@ class RecipeViewSet(viewsets.ModelViewSet):
         request = HttpResponse(content, content_type='text/plain')
         request['Content-Disposition'] = f'attachment; filename={filename}'
         return request
+
+    @action(
+        detail=False,
+        methods=['GET'],
+        permission_classes=[IsAuthorOrAdminOrReadOnly]
+    )
+    def download_shopping_cart(self, request):
+        """Скачать список покупок."""
+        user = request.user
+        ingredients = IngredientInRecipe.objects.filter(
+            recipe__shopping_cart__user=user).values(
+            name=F('ingredients__name'),
+            measurement_unit=F('ingredients__measurement_unit')).annotate(
+            amount=Sum('amount').order_by('ingredients__name')
+        )
+        return self.export_file(ingredients)
 
     @action(
         detail=True,
@@ -128,6 +134,8 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
     """Стандартный ридонли вьюсет тегов модели Tag."""
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
+    permission_classes = [AllowAny, ]
+
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     """Стандартный ридонли вьюсет ингридиентов модели Ingredient."""
@@ -135,6 +143,7 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = IngredientSerializer
     filter_backends = [filters.SearchFilter]
     search_fields = ('^name',)
+    permission_classes = [AllowAny, ]
 
 
 class FoodgramUserViewSet(UserViewSet):
@@ -190,7 +199,9 @@ class FoodgramUserViewSet(UserViewSet):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
             user = request.user
-            Subscribe.objects.filter(user=user, author=author).delete()
+            Subscribe.objects.get_object_or_404(
+                user=user, author=author
+            ).delete()
             message = {
                 'detail': f'Вы отписались от пользователя {author}'
             }
