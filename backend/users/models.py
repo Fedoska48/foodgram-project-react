@@ -1,32 +1,32 @@
 from django.contrib.auth.models import AbstractUser
+from django.core.validators import RegexValidator
 from django.db import models
+
+from backend.settings import MAX_LENGTH_EMAIL, MAX_LENGTH_USERNAME
 
 
 class User(AbstractUser):
     """Модель создания пользователя."""
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['username', 'first_name', 'last_name']
 
-    USER = 'user'
-    MODERATOR = 'moderator'
-    ADMIN = 'admin'
-
-    USER_ROLES = [
-        (USER, 'user'),
-        (MODERATOR, 'moderator'),
-        (ADMIN, 'admin'),
-    ]
+    username = models.CharField(
+        max_length=MAX_LENGTH_USERNAME,
+        unique=True,
+        validators=[
+            RegexValidator(
+                regex="^[\w.@+-]+\z",
+                message='Имя пользователя должно соответсвовать критериям',
+            )
+        ],
+    )
     email = models.EmailField(
-        max_length=254,
+        max_length=MAX_LENGTH_EMAIL,
         unique=True,
     )
     bio = models.TextField(
         verbose_name='Биография',
         blank=True,
-    )
-    role = models.CharField(
-        verbose_name='Роль пользователя',
-        max_length=10,
-        choices=USER_ROLES,
-        default='user',
     )
     confirmation_code = models.CharField(
         verbose_name='Токен пользователя',
@@ -34,21 +34,6 @@ class User(AbstractUser):
         blank=True,
         null=True,
     )
-
-    @property
-    def is_admin(self):
-        """Проверка пользователя на наличие прав администратора."""
-        return self.role == self.ADMIN or self.is_superuser
-
-    @property
-    def is_moderator(self):
-        """Проверка пользователя на наличие прав модератора."""
-        return self.role == self.MODERATOR
-
-    @property
-    def is_user(self):
-        """Проверка пользователя на наличие стандартных прав."""
-        return self.role == self.USER
 
     class Meta:
         ordering = ('username',)

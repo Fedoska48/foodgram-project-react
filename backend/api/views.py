@@ -10,6 +10,7 @@ from rest_framework import status, viewsets, filters
 from rest_framework.decorators import action
 from django_filters.rest_framework import DjangoFilterBackend
 
+from .pagination import StandartPagination
 from .permissions import IsAuthorOrAdminOrReadOnly
 from .serializers import (TagSerializer, IngredientSerializer,
                           ShoppingCartSerializer, FavoriteSerializer,
@@ -27,6 +28,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     permission_classes = [IsAuthorOrAdminOrReadOnly]
     filter_backends = [DjangoFilterBackend]
+    pagination_class = StandartPagination
 
     def get_serializer_class(self):
         if self.action in ('list', 'retrieve'):
@@ -127,7 +129,6 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
 
-
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     """Стандартный ридонли вьюсет ингридиентов модели Ingredient."""
     queryset = Ingredient.objects.all()
@@ -141,6 +142,7 @@ class FoodgramUserViewSet(UserViewSet):
     queryset = User.objects.all()
     permission_classes = [IsAuthorOrAdminOrReadOnly]
     filter_backends = [DjangoFilterBackend]
+    pagination_class = StandartPagination
 
     def get_serializer_class(self):
         if self.action in ('list', 'retrieve', 'me'):

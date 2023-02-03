@@ -1,23 +1,31 @@
 from django.contrib import admin
-
-from .models import Recipe, Tag, Ingredient, IngredientInRecipe
+from django.contrib.auth.models import Group
+from .models import Recipe, Tag, Ingredient, IngredientInRecipe, Favorite
 
 
 class IngredientInRecipeInLine(admin.StackedInline):
     model = IngredientInRecipe
     extra = 1
     min_num = 1
-    # fields = ('ingredients', 'amount')
     autocomplete_fields = ('ingredients',)
 
 
 class RecipeAdmin(admin.ModelAdmin):
+
+    def favorited_count(self):
+        return Favorite.objects.filter(recipe=self.id).count()
+
+    def ingredient_in_recipe(self):
+        return ", ".join(map(str, self.recipe_ingredients.all()))
+
     list_display = (
         'id',
         'author',
         'name',
         'pub_date',
-        'update'
+        'update',
+        favorited_count,
+        ingredient_in_recipe
     )
     list_display_links = (
         'author',
@@ -52,3 +60,4 @@ class IngredientAdmin(admin.ModelAdmin):
 admin.site.register(Recipe, RecipeAdmin)
 admin.site.register(Tag, TagAdmin)
 admin.site.register(Ingredient, IngredientAdmin)
+admin.site.unregister(Group)

@@ -4,7 +4,14 @@ from django.contrib.auth.admin import UserAdmin
 from .models import User
 
 
-class RecipeAdmin(admin.ModelAdmin):
+class UserAdmin(UserAdmin):
+
+    def subscriptions_count(self, user):
+        return user.subscriptions.count()
+
+    def recipes_count(self, user):
+        return user.recipes.count()
+
     list_display = (
         'id',
         'first_name',
@@ -12,6 +19,8 @@ class RecipeAdmin(admin.ModelAdmin):
         'username',
         'email',
         'bio',
+        'subscriptions_count',
+        'recipes_count'
     )
     list_display_links = (
         'id',
