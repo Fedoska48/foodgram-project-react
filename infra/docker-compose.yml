@@ -5,15 +5,8 @@ services:
     image: postgres:14.0-alpine
     volumes:
       - dbdata:/var/lib/postgresql/data/
-      - ./docker_postgres_init.sql:/docker-entrypoint-initdb.d/docker_postgres_init.sql
     env_file:
       - ./.env
-    environment:
-      POSTGRES_DB: "foodgram"
-      POSTGRES_USER: "foodgram_user"
-      POSTGRES_PASSWORD: "1234"
-    ports:
-      - "5432:5432"
   frontend:
     build:
       context: ./frontend
