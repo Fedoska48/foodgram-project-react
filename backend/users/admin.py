@@ -7,7 +7,7 @@ from .models import User
 class UserAdmin(UserAdmin):
 
     def subscriptions_count(self, user):
-        return user.subscriptions.count()
+        return user.following.count()
 
     def recipes_count(self, user):
         return user.recipes.count()
