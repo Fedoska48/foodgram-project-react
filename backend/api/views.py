@@ -11,7 +11,7 @@ from rest_framework.response import Response
 from rest_framework import status, viewsets, filters
 from rest_framework.decorators import action
 
-from .filters import RecipeFilter
+from .filters import RecipeFilter, IngredientFilter
 from .pagination import StandartPagination
 from .permissions import IsAuthorOrAdminOrReadOnly
 from .serializers import (TagSerializer, IngredientSerializer,
@@ -141,7 +141,7 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     """Стандартный ридонли вьюсет ингридиентов модели Ingredient."""
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
-    filter_backends = [filters.SearchFilter]
+    filter_backends = (IngredientFilter, )
     search_fields = ('^name',)
     permission_classes = [AllowAny, ]
 

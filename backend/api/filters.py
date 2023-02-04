@@ -1,5 +1,8 @@
 import django_filters
 from recipes.models import Recipe, Tag
+from rest_framework.filters import SearchFilter
+
+from backend.recipes.models import Ingredient
 
 
 class RecipeFilter(django_filters.FilterSet):
@@ -21,7 +24,7 @@ class RecipeFilter(django_filters.FilterSet):
 
     class Meta:
         model = Recipe
-        fields = ('author', )
+        fields = ('author',)
 
     def get_is_favorited(self, queryset, name, value):
         user = self.request.user
@@ -40,3 +43,11 @@ class RecipeFilter(django_filters.FilterSet):
                 is_in_shopping_cart=True,
             )
         return Recipe.objects.all()
+
+
+class IngredientFilter(SearchFilter):
+    search_param = 'name'
+
+    class Meta:
+        model = Ingredient
+        fields = ('name',)
