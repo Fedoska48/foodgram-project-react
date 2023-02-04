@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.models import Group
-from .models import Recipe, Tag, Ingredient, IngredientInRecipe, Favorite
+
+from .models import Favorite, Ingredient, IngredientInRecipe, Recipe, Tag
 
 
 class IngredientInRecipeInLine(admin.StackedInline):

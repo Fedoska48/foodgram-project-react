@@ -8,7 +8,7 @@ from djoser.serializers import SetPasswordSerializer, UserCreateSerializer
 from djoser.views import UserViewSet
 from recipes.models import (Favorite, Ingredient, IngredientInRecipe, Recipe,
                             ShoppingCart, Subscribe, Tag)
-from rest_framework import filters, status, viewsets
+from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -44,7 +44,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         recipe = get_object_or_404(Recipe, pk=pk)
         if model.objects.filter(recipe=recipe, user=user).exists():
             return Response({
-                'errors': f'Данный объект уже существует.'
+                'errors': 'Данный объект уже существует.'
             }, status.HTTP_400_BAD_REQUEST)
         relation = model(recipe=recipe, user=user)
         relation.save()
@@ -152,7 +152,7 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
 class FoodgramUserViewSet(UserViewSet):
     """Кастомный ViewSet модели User."""
     queryset = User.objects.all()
-    permission_classes = [IsAuthenticated,]
+    permission_classes = [IsAuthenticated, ]
     filter_backends = [DjangoFilterBackend]
     pagination_class = StandartPagination
 

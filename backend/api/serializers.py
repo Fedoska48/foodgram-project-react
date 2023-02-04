@@ -1,14 +1,11 @@
 from django.db.models import F
 
 from djoser import serializers as ds
-from djoser.serializers import (SetPasswordSerializer, UserCreateSerializer,
-                                UserSerializer)
 from drf_extra_fields.fields import Base64ImageField
 from recipes.models import (Favorite, Ingredient, IngredientInRecipe, Recipe,
                             ShoppingCart, Subscribe, Tag)
 from rest_framework import serializers
 from rest_framework.fields import SerializerMethodField
-from rest_framework.validators import UniqueValidator
 
 from users.models import User
 
@@ -101,7 +98,8 @@ class IngredientInRecipeSerializer(serializers.ModelSerializer):
     """Ингредиенты в рецепте. Include in RecipeReadSerializer. OK"""
     id = serializers.PrimaryKeyRelatedField(
         source='ingredient', queryset=Ingredient.objects.all())
-    name = serializers.StringRelatedField(source='ingredient.name')
+    name = serializers.StringRelatedField(source='ingredient'
+                                                 '.name')
     measurement_unit = serializers.StringRelatedField(
         source='ingredient.measurement_unit')
 
@@ -149,8 +147,8 @@ class RecipeReadSerializer(serializers.ModelSerializer):
     def get_is_favorited(self, obj):
         request = self.context.get('request')
         return (
-            request.user.is_authenticated
-            and obj.favorite.filter(user=request.user).exists()
+                request.user.is_authenticated
+                and obj.favorite.filter(user=request.user).exists()
         )
 
     def get_is_in_shopping_cart(self, obj):
@@ -223,7 +221,6 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
                 "Время приготовления должно быть больше нуля."
             )
         return super().validate(data)
-
 
     @staticmethod
     def create_ingredients(ingredients, recipe):
