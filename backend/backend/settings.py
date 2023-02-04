@@ -32,13 +32,13 @@ INSTALLED_APPS = [
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated',
+        'rest_framework.permissions.AllowAny',
     ],
 
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
-        # 'rest_framework.authentication.BasicAuthentication',
-        # 'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
     ],
     'DEFAULT_FILTER_BACKENDS': [
         'django_filters.rest_framework.DjangoFilterBackend',
@@ -47,15 +47,14 @@ REST_FRAMEWORK = {
 APPEND_SLASH = False
 
 DJOSER = {
-    "SEND_CONFIRMATION_EMAIL": True,
-    "SEND_ACTIVATION_EMAIL": True,
-    "SERIALIZERS": {
-        "user": "api.serializers.UserReadSerializer",
-        "current_user": "api.serializers.UserReadSerializer",
+    'SERIALIZERS': {
+        'user': 'api.serializers.UserReadSerializer',
+        'current_user': 'api.serializers.UserReadSerializer',
     },
-    "PERMISSIONS": {
-        "user": ["rest_framework.permissions.IsAuthenticated"],
-        "user_list": ["rest_framework.permissions.AllowAny"],
+    'HIDE_USERS': False,
+    'PERMISSIONS': {
+        'user': ['rest_framework.permissions.IsAuthenticated'],
+        'user_list': ['rest_framework.permissions.AllowAny'],
     },
 }
 

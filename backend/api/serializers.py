@@ -14,7 +14,7 @@ from users.models import User
 
 
 # USERS ZONE
-class UserReadSerializer(UserSerializer):
+class UserReadSerializer(ds.UserSerializer):
     """USER for READ: GET: api/users/ :: /api/users/{id}/ :: /api/users/me/."""
 
     is_subscribed = SerializerMethodField(read_only=True)
@@ -150,14 +150,14 @@ class RecipeReadSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         return (
             request.user.is_authenticated
-            and obj.favorite_set.filter(user=request.user).exist()
+            and obj.favorite.filter(user=request.user).exists()
         )
 
     def get_is_in_shopping_cart(self, obj):
         request = self.context.get('request')
         return (
                 request.user.is_authenticated
-                and obj.shopping_cart_set.filter(user=request.user).exist()
+                and obj.shopping_cart.filter(user=request.user).exists()
         )
 
 
@@ -271,14 +271,6 @@ class ShoppingCartSerializer(RecipeShortSerializer):
         model = ShoppingCart
         fields = ('user', 'recipe')
 
-    def validate(self, data):
-        user = self.context.get('request').user
-        recipe = self.context.get('request').recipe
-        if recipe.shopping_cart.filter(user=user).exists():
-            raise serializers.ValidationError(
-                'Рецепт уже находится в корзине!'
-            )
-        return super().validate(data)
 
 class FavoriteSerializer(RecipeShortSerializer):
     """Сериализатор избранного."""
@@ -286,12 +278,3 @@ class FavoriteSerializer(RecipeShortSerializer):
     class Meta:
         model = Favorite
         fields = ('user', 'recipe')
-
-    def validate(self, data):
-        user = self.context.get('request').user
-        recipe = self.context.get('request').recipe
-        if recipe.favorite.filter(user=user).exists():
-            raise serializers.ValidationError(
-                'Рецепт уже находится в избранном!'
-            )
-        return super().validate(data)

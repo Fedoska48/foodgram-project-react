@@ -4,13 +4,13 @@ from django.db.models import F, Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from djoser.serializers import SetPasswordSerializer
+from djoser.serializers import SetPasswordSerializer, UserCreateSerializer
 from djoser.views import UserViewSet
 from recipes.models import (Favorite, Ingredient, IngredientInRecipe, Recipe,
                             ShoppingCart, Subscribe, Tag)
 from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from users.models import User
 
@@ -21,8 +21,7 @@ from .serializers import (FavoriteSerializer, IngredientSerializer,
                           RecipeCreateUpdateSerializer, RecipeReadSerializer,
                           RecipeShortSerializer, ShoppingCartSerializer,
                           SubscribeSerializer, SubscriptionSerializer,
-                          TagSerializer, UserCreateSerializer,
-                          UserReadSerializer)
+                          TagSerializer, UserReadSerializer)
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
@@ -40,24 +39,28 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return RecipeCreateUpdateSerializer
 
     @staticmethod
-    def create_relation(request, pk, model, serializer, error):
+    def create_relation(request, pk, model, serializer):
         user = request.user
         recipe = get_object_or_404(Recipe, pk=pk)
-        if model.objects.filter(recipe=recipe, user=user).exist():
-            return Response({'errors': error}, status.HTTP_400_BAD_REQUEST)
+        if model.objects.filter(recipe=recipe, user=user).exists():
+            return Response({
+                'errors': f'Данный объект уже существует.'
+            }, status.HTTP_400_BAD_REQUEST)
         relation = model(recipe=recipe, user=user)
         relation.save()
-        serializer = RecipeViewSet.get_serializer(recipe)
+        serializer = serializer(
+            get_object_or_404(model, id=pk), context={"request": request}
+        )
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @staticmethod
     def delete_relation(request, pk, model):
         user = request.user
-        recipe = get_object_or_404(model, pk=pk)
+        recipe = get_object_or_404(Recipe, pk=pk)
         model.objects.filter(user=user, recipe=recipe).delete()
         message = {
             'detail':
-                'Данные удалены'
+                'Данные удалены.'
         }
         return Response(message, status=status.HTTP_204_NO_CONTENT)
 
@@ -100,28 +103,16 @@ class RecipeViewSet(viewsets.ModelViewSet):
     )
     def shopping_cart(self, request, pk):
         """Список покупок."""
-        user = request.user
-        recipe = get_object_or_404(Recipe, pk=pk)
-        data = {
-            'user': user.pk,
-            'recipe': recipe.pk
-        }
-        serializer = ShoppingCartSerializer(data=data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        serializer = self.get_serializer(recipe)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return RecipeViewSet.create_relation(
+            request,
+            pk,
+            ShoppingCart,
+            ShoppingCartSerializer
+        )
 
     @shopping_cart.mapping.delete
     def undo_shopping_cart(self, request, pk):
-        user = request.user
-        recipe = get_object_or_404(Recipe, pk=pk)
-        ShoppingCart.objects.filter(user=user, recipe=recipe).delete()
-        message = {
-            'detail':
-                'Рецепт удален из корзины'
-        }
-        return Response(message, status=status.HTTP_204_NO_CONTENT)
+        return RecipeViewSet.delete_relation(request, pk, ShoppingCart)
 
     @action(
         detail=True,
@@ -161,7 +152,7 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
 class FoodgramUserViewSet(UserViewSet):
     """Кастомный ViewSet модели User."""
     queryset = User.objects.all()
-    permission_classes = [IsAuthorOrAdminOrReadOnly]
+    permission_classes = [IsAuthenticated,]
     filter_backends = [DjangoFilterBackend]
     pagination_class = StandartPagination
 
