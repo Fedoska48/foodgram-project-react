@@ -8,6 +8,7 @@ from recipes.models import (Favorite, Ingredient, IngredientInRecipe, Recipe,
                             ShoppingCart, Subscribe, Tag)
 from rest_framework import serializers
 from rest_framework.fields import SerializerMethodField
+from rest_framework.validators import UniqueValidator
 
 from users.models import User
 
@@ -191,6 +192,38 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
             'text',
             'cooking_time'
         )
+
+    def validate(self, data):
+        # униальные теги
+        if len(data['tags']) != len(set(data['tags'])):
+            raise serializers.ValidationError("Теги повторяются.")
+        # количество тегов больше или равно 1
+        if len(data['tags']) == 0:
+            raise serializers.ValidationError(
+                "Необходимо выбрать хотя бы один тег.")
+        # уникальыне ингредиенты
+        ingredients = data['recipe_ingredients']
+        if len(ingredients) != len(
+                set(obj['ingredient'] for obj in ingredients)):
+            raise serializers.ValidationError(
+                "Ингредиенты не должны повторяться.")
+        # ингредиенты больше или равно 1
+        if len(data['recipe_ingredients']) == 0:
+            raise serializers.ValidationError(
+                "Необходимо добавить ингредиент."
+            )
+        # количество ингредиентов
+        if any(obj['amount'] <= 0 for obj in ingredients):
+            raise serializers.ValidationError(
+                "Добавьте ингредиент."
+            )
+        # время приготовления
+        if data['cooking_time'] <= 0:
+            raise serializers.ValidationError(
+                "Время приготовления должно быть больше нуля."
+            )
+        return super().validate(data)
+
 
     @staticmethod
     def create_ingredients(ingredients, recipe):
