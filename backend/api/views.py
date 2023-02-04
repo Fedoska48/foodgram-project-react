@@ -40,6 +40,28 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return RecipeCreateUpdateSerializer
 
     @staticmethod
+    def create_relation(request, pk, model, serializer, error):
+        user = request.user
+        recipe = get_object_or_404(Recipe, pk=pk)
+        if model.objects.filter(recipe=recipe, user=user).exist():
+            return Response({'errors': error}, status.HTTP_400_BAD_REQUEST)
+        relation = model(recipe=recipe, user=user)
+        relation.save()
+        serializer = RecipeViewSet.get_serializer(recipe)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    @staticmethod
+    def delete_relation(request, pk, model):
+        user = request.user
+        recipe = get_object_or_404(model, pk=pk)
+        model.objects.filter(user=user, recipe=recipe).delete()
+        message = {
+            'detail':
+                'Данные удалены'
+        }
+        return Response(message, status=status.HTTP_204_NO_CONTENT)
+
+    @staticmethod
     def export_file(ingredients):
         data = []
         for ingredient in ingredients:
@@ -73,61 +95,51 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     @action(
         detail=True,
-        methods=['POST', 'DELETE'],
+        methods=['POST'],
         permission_classes=[IsAuthorOrAdminOrReadOnly]
     )
     def shopping_cart(self, request, pk):
         """Список покупок."""
-        if request.method == 'POST':
-            user = request.user
-            recipe = get_object_or_404(Recipe, pk=pk)
-            data = {
-                'user': user.pk,
-                'recipe': recipe.pk
-            }
-            serializer = ShoppingCartSerializer(data=data)
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
-            serializer = self.get_serializer(recipe)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        if request.method == 'DELETE':
-            user = request.user
-            recipe = get_object_or_404(Recipe, pk=pk)
-            ShoppingCart.objects.filter(user=user, recipe=recipe).delete()
-            message = {
-                'detail':
-                    'Рецепт удален из корзины'
-            }
-            return Response(message, status=status.HTTP_204_NO_CONTENT)
+        user = request.user
+        recipe = get_object_or_404(Recipe, pk=pk)
+        data = {
+            'user': user.pk,
+            'recipe': recipe.pk
+        }
+        serializer = ShoppingCartSerializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        serializer = self.get_serializer(recipe)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    @shopping_cart.mapping.delete
+    def undo_shopping_cart(self, request, pk):
+        user = request.user
+        recipe = get_object_or_404(Recipe, pk=pk)
+        ShoppingCart.objects.filter(user=user, recipe=recipe).delete()
+        message = {
+            'detail':
+                'Рецепт удален из корзины'
+        }
+        return Response(message, status=status.HTTP_204_NO_CONTENT)
 
     @action(
         detail=True,
-        methods=['POST', 'DELETE'],
+        methods=['POST'],
         permission_classes=[IsAuthorOrAdminOrReadOnly]
     )
     def favorite(self, request, pk):
         """Функционал избранных рецептов."""
-        if request.method == 'POST':
-            user = request.user
-            recipe = get_object_or_404(Recipe, pk=pk)
-            data = {
-                'user': user.pk,
-                'recipe': recipe.pk
-            }
-            serializer = FavoriteSerializer(data=data)
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
-            serializer = self.get_serializer(recipe)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        if request.method == 'DELETE':
-            user = request.user
-            recipe = get_object_or_404(Recipe, pk=pk)
-            Favorite.objects.filter(user=user, recipe=recipe).delete()
-            message = {
-                'detail':
-                    'Рецепт удален из избранного'
-            }
-            return Response(message, status=status.HTTP_204_NO_CONTENT)
+        return RecipeViewSet.create_relation(
+            request,
+            pk,
+            Favorite,
+            FavoriteSerializer
+        )
+
+    @favorite.mapping.delete
+    def unfavorite(self, request, pk):
+        return RecipeViewSet.delete_relation(request, pk, Favorite)
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
@@ -179,30 +191,31 @@ class FoodgramUserViewSet(UserViewSet):
 
     @action(
         detail=True,
-        methods=['POST', 'DELETE'],
+        methods=['POST'],
         permission_classes=[IsAuthorOrAdminOrReadOnly]
     )
     def subscribe(self, request, id):
         """Функционал подписок на авторов."""
+        user = request.user
+        author = get_object_or_404(User, pk=id)
+        data = {
+            'user': user.pk,
+            'author': author.pk
+        }
+        serializer = SubscribeSerializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        serializer = self.get_serializer(author)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    @subscribe.mapping.delete
+    def unsubscribe(self, request, id):
         author = get_object_or_404(User, id=id)
-        if request.method == 'POST':
-            user = request.user
-            author = get_object_or_404(User, pk=id)
-            data = {
-                'user': user.pk,
-                'author': author.pk
-            }
-            serializer = SubscribeSerializer(data=data)
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
-            serializer = self.get_serializer(author)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        else:
-            user = request.user
-            Subscribe.objects.get_object_or_404(
-                user=user, author=author
-            ).delete()
-            message = {
-                'detail': f'Вы отписались от пользователя {author}'
-            }
-            return Response(message, status=status.HTTP_204_NO_CONTENT)
+        user = request.user
+        Subscribe.objects.get_object_or_404(
+            user=user, author=author
+        ).delete()
+        message = {
+            'detail': f'Вы отписались от пользователя {author}'
+        }
+        return Response(message, status=status.HTTP_204_NO_CONTENT)
