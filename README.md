@@ -1,3 +1,5 @@
+![example workflow](https://github.com/Fedoska48/foodgram-project-react/actions/workflows/foodgram_workflow.yml/badge.svg)
+
 # 158.160.45.98
 
 # Проект Foodgram
