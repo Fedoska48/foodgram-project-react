@@ -39,13 +39,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return RecipeCreateUpdateSerializer
 
     @staticmethod
-    def create_relation(request, pk, model, serializer):
-        user = request.user
+    def create_relation(request, pk, serializer):
         recipe = get_object_or_404(Recipe, pk=pk)
-        if model.objects.filter(recipe=recipe, user=user).exists():
-            return Response({
-                'errors': 'Данный объект уже существует.'
-            }, status.HTTP_400_BAD_REQUEST)
         data = {
             'user': request.user.id,
             'recipe': recipe.id
@@ -109,7 +104,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return RecipeViewSet.create_relation(
             request,
             pk,
-            ShoppingCart,
             ShoppingCartSerializer
         )
 
@@ -127,7 +121,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return RecipeViewSet.create_relation(
             request,
             pk,
-            Favorite,
             FavoriteSerializer
         )
 

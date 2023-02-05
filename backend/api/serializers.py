@@ -145,19 +145,17 @@ class RecipeReadSerializer(serializers.ModelSerializer):
         return ingredients
 
     def get_is_favorited(self, obj):
-        recipe = obj
         request = self.context.get('request')
         return (
             request.user.is_authenticated
-            and recipe.favorite_set.filter(user=request.user).exists()
+            and obj.favorite_set.filter(user=request.user).exists()
         )
 
     def get_is_in_shopping_cart(self, obj):
-        recipe = obj
         request = self.context.get('request')
         return (
             request.user.is_authenticated
-            and recipe.shoppingcart_set.filter(user=request.user).exists()
+            and obj.shoppingcart_set.filter(user=request.user).exists()
         )
 
 
@@ -272,6 +270,13 @@ class ShoppingCartSerializer(RecipeShortSerializer):
         model = ShoppingCart
         fields = ('user', 'recipe')
 
+    def validate(self, data):
+        user = data['user']
+        if user.shoppingcart_set.filter(recipe=data['recipe']).exists():
+            raise serializers.ValidationError(
+                'Рецепт уже в списке покупок.'
+            )
+        return data
 
 class FavoriteSerializer(RecipeShortSerializer):
     """Сериализатор избранного."""
@@ -279,3 +284,11 @@ class FavoriteSerializer(RecipeShortSerializer):
     class Meta:
         model = Favorite
         fields = ('user', 'recipe')
+
+    def validate(self, data):
+        user = data['user']
+        if user.афмщкшеу_set.filter(recipe=data['recipe']).exists():
+            raise serializers.ValidationError(
+                'Рецепт уже в избранном.'
+            )
+        return data
