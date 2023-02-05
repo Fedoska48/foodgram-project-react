@@ -28,8 +28,8 @@ class RecipeFilter(django_filters.FilterSet):
     def get_is_favorited(self, queryset, name, value):
         user = self.request.user
         if value:
-            return queryset.filter(
-                favorite_set__user=user,
+            return queryset.favorite_set.filter(
+                user=user,
                 is_favorited=True,
             )
         return Recipe.objects.all()
@@ -37,8 +37,8 @@ class RecipeFilter(django_filters.FilterSet):
     def get_is_in_shopping_cart(self, queryset, name, value):
         user = self.request.user
         if value:
-            return queryset.filter(
-                shoppingcart_set__user=user,
+            return queryset.shoppingcart_set.filter(
+                user=user,
                 is_in_shopping_cart=True,
             )
         return Recipe.objects.all()
