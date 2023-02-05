@@ -200,18 +200,18 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 "Необходимо выбрать хотя бы один тег.")
         # уникальыне ингредиенты
-        ingredients = data['recipe_ingredients']
-        if len(ingredients) != len(
-                set(obj['ingredient'] for obj in ingredients)):
+        ingredients_list = data['ingredients']
+        if len(ingredients_list) != len(
+                set(obj['id'] for obj in ingredients_list)):
             raise serializers.ValidationError(
                 "Ингредиенты не должны повторяться.")
         # ингредиенты больше или равно 1
-        if len(data['recipe_ingredients']) == 0:
+        if len(data['ingredients']) == 0:
             raise serializers.ValidationError(
                 "Необходимо добавить ингредиент."
             )
         # количество ингредиентов
-        if any(obj['amount'] <= 0 for obj in ingredients):
+        if any(obj['amount'] <= 0 for obj in ingredients_list):
             raise serializers.ValidationError(
                 "Добавьте ингредиент."
             )
@@ -225,11 +225,13 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
     @staticmethod
     def create_ingredients(ingredients, recipe):
         """Создать ингредиент."""
-        ingredients_in_recipe = IngredientInRecipe(
-            recipe=recipe,
-            ingredients=ingredients.get('id'),
-            amount=ingredients.get('amount'),
-        )
+        ingredients_in_recipe = [
+            IngredientInRecipe(
+                recipe=recipe,
+                ingredients=item['id'],
+                amount=item['amount']
+            ) for item in ingredients
+        ]
         IngredientInRecipe.objects.bulk_create(ingredients_in_recipe)
 
     def create(self, data):
