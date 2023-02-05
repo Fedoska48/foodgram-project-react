@@ -266,6 +266,16 @@ class RecipeShortSerializer(RecipeReadSerializer):
 class ShoppingCartSerializer(RecipeShortSerializer):
     """Список покупок. POST/DELETE: api/recipes/{id}/shopping_cart/"""
 
+    user = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.all(),
+        write_only=True,
+    )
+
+    recipe = serializers.PrimaryKeyRelatedField(
+        queryset=Recipe.objects.all(),
+        write_only=True,
+    )
+
     class Meta:
         model = ShoppingCart
         fields = ('user', 'recipe')
@@ -273,6 +283,15 @@ class ShoppingCartSerializer(RecipeShortSerializer):
 
 class FavoriteSerializer(RecipeShortSerializer):
     """Сериализатор избранного."""
+    user = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.all(),
+        write_only=True,
+    )
+
+    recipe = serializers.PrimaryKeyRelatedField(
+        queryset=Recipe.objects.all(),
+        write_only=True,
+    )
 
     class Meta:
         model = Favorite
