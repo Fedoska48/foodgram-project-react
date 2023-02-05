@@ -102,7 +102,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     @action(
         detail=True,
         methods=['POST'],
-        permission_classes=[IsAuthenticated,]
+        permission_classes=[IsAuthorOrAdminOrReadOnly, ]
     )
     def shopping_cart(self, request, pk):
         """Список покупок."""
@@ -120,7 +120,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     @action(
         detail=True,
         methods=['POST'],
-        permission_classes=[IsAuthenticated,]
+        permission_classes=[IsAuthorOrAdminOrReadOnly, ]
     )
     def favorite(self, request, pk):
         """Функционал избранных рецептов."""
