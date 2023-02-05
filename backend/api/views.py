@@ -199,7 +199,7 @@ class FoodgramUserViewSet(UserViewSet):
     def unsubscribe(self, request, id):
         author = get_object_or_404(User, id=id)
         user = request.user
-        Subscribe.objects.get_object_or_404(
+        get_object_or_404(Subscribe,
             user=user, author=author
         ).delete()
         message = {
