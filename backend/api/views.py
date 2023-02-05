@@ -94,10 +94,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
         ingredients = IngredientInRecipe.objects.filter(
             recipe__shopping_cart__user=user).values(
             name=F('ingredients__name'),
-            measurement_unit=F('ingredients__measurement_unit')).annotate(
-            amount=Sum('amount').order_by('ingredients__name')
+            measurement_unit=F('ingredients__measurement_unit')).order_by(
+            'ingredients__name').annotate(
+            amount=Sum('amount')
         )
-        return self.export_file(ingredients)
+        return RecipeViewSet.export_file(ingredients)
 
     @action(
         detail=True,
