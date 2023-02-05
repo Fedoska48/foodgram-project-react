@@ -1,5 +1,7 @@
+from django.conf import settings
 from django.core.validators import MinValueValidator, RegexValidator
 from django.db import models
+
 from users.models import User
 
 
@@ -9,11 +11,11 @@ class Recipe(models.Model):
         on_delete=models.CASCADE,
         related_name='recipes',
         verbose_name='Автор',
-        max_length=200
+        max_length=settings.MAX_LENGTH_AUTHOR
     )
     name = models.CharField(
         verbose_name='Название',
-        max_length=155
+        max_length=settings.MAX_LENGTH_RECIPE_NAME
     )
     image = models.ImageField(
         verbose_name='Изображение',
@@ -42,11 +44,11 @@ class Recipe(models.Model):
     )
     pub_date = models.DateTimeField(
         auto_now_add=True,
-        verbose_name="Дата публикации"
+        verbose_name='Дата публикации'
     )
     update = models.DateTimeField(
         auto_now=True,
-        verbose_name="Дата обновления"
+        verbose_name='Дата обновления'
     )
 
     class Meta:
@@ -61,24 +63,24 @@ class Recipe(models.Model):
 class Tag(models.Model):
     name = models.CharField(
         verbose_name='Название',
-        max_length=200,
+        max_length=settings.MAX_LENGTH_TAG_NAME,
         unique=True
     )
     color = models.CharField(
         verbose_name='HEX-код цвета',
-        max_length=7,
+        max_length=settings.MAX_LENGTH_TAG_COLOR,
         unique=True,
         help_text='Например, #49B64E',
         validators=[
             RegexValidator(
-                regex="^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$",
+                regex='^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$',
                 message='Внесите данные согласно заданной маске',
             )
         ],
     )
     slug = models.SlugField(
         verbose_name='Слаг',
-        max_length=200,
+        max_length=settings.MAX_LENGTH_TAG_SLUG,
         unique=True
     )
 
@@ -93,11 +95,11 @@ class Tag(models.Model):
 class Ingredient(models.Model):
     name = models.CharField(
         verbose_name='Название',
-        max_length=255,
+        max_length=settings.MAX_LENGTH_INGREDIENT_NAME,
     )
     measurement_unit = models.CharField(
         verbose_name='Единица измерения',
-        max_length=155,
+        max_length=settings.MAX_LENGTH_INGREDIENT_MEAUNIT,
     )
 
     class Meta:
@@ -147,57 +149,63 @@ class Subscribe(models.Model):
         User,
         on_delete=models.CASCADE,
         related_name='follower',
-        verbose_name="Подписчик"
+        verbose_name='Подписчик'
     )
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         related_name='following',
-        verbose_name="Автор"
+        verbose_name='Автор'
     )
 
     class Meta:
-        verbose_name = "Подписки"
+        verbose_name = 'Подписки'
         constraints = [
             models.UniqueConstraint(
                 fields=['user', 'author'],
                 name='unique subscribtion')]
 
 
-class Favorite(models.Model):
-    """Favorite model."""
+class AbstractModel(models.Model):
+    """Abstract model for Favorite and ShoppingCart"""
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
-        related_name='favorite',
-        verbose_name='Рецепт',
+        verbose_name='Рецепт'
     )
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='favorite',
-        verbose_name='Пользователь добавлен в избранное',
+        verbose_name='Пользователь',
     )
 
     class Meta:
-        verbose_name = 'Favorite'
-        verbose_name_plural = 'Favorites'
+        abstract = True
 
 
-class ShoppingCart(models.Model):
-    recipe = models.ForeignKey(
-        Recipe,
-        on_delete=models.CASCADE,
-        related_name='shopping_cart',
-        verbose_name='Рецепт',
-    )
-    user = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name='shopping_cart',
-        verbose_name='Корзина пользователя',
-    )
+class Favorite(AbstractModel):
+    """Favorite model."""
+
+    class Meta:
+        verbose_name = 'Избранное'
+        verbose_name_plural = 'Избранные'
+        constraints = [
+            models.UniqueConstraint(
+                name='unique_favorite',
+                fields=['recipe', 'user'],
+            ),
+        ]
+
+
+class ShoppingCart(AbstractModel):
+    """ShoppingCart model."""
 
     class Meta:
         verbose_name = 'Корзина покупок'
         verbose_name_plural = 'Корзины покупок'
+        constraints = [
+            models.UniqueConstraint(
+                name='unique_shopping_cart',
+                fields=['recipe', 'user'],
+            ),
+        ]

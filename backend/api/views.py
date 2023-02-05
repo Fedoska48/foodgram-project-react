@@ -6,14 +6,14 @@ from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.serializers import SetPasswordSerializer, UserCreateSerializer
 from djoser.views import UserViewSet
-from recipes.models import (Favorite, Ingredient, IngredientInRecipe, Recipe,
-                            ShoppingCart, Subscribe, Tag)
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from users.models import User
 
+from recipes.models import (Favorite, Ingredient, IngredientInRecipe, Recipe,
+                            ShoppingCart, Subscribe, Tag)
+from users.models import User
 from .filters import IngredientFilter, RecipeFilter
 from .pagination import StandartPagination
 from .permissions import IsAuthorOrAdminOrReadOnly
@@ -58,9 +58,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     @staticmethod
     def delete_relation(request, pk, model):
-        user = request.user
-        recipe = get_object_or_404(Recipe, pk=pk)
-        model.objects.filter(user=user, recipe=recipe).delete()
+        model.objects.filter(user=request.user, recipe=get_object_or_404(
+            Recipe, pk=pk)).delete()
         message = {
             'detail':
                 'Данные удалены.'
@@ -92,7 +91,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         """Скачать список покупок."""
         user = request.user
         ingredients = IngredientInRecipe.objects.filter(
-            recipe__shopping_cart__user=user).values(
+            recipe__shoppingcart__user=user).values(
             name=F('ingredients__name'),
             measurement_unit=F('ingredients__measurement_unit')).order_by(
             'ingredients__name').annotate(

@@ -9,7 +9,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-tu$&!j*=-ha2%6@l8_pv-9fkcxd@hm%b_hyoo98p4b03*he)&e')
 
-DEBUG = os.getenv("DEBUG", "True")
+DEBUG = os.getenv('DEBUG', True)
 
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '*')
 
@@ -36,7 +36,7 @@ REST_FRAMEWORK = {
 
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
-        # 'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
         # 'rest_framework.authentication.SessionAuthentication',
     ],
     'DEFAULT_FILTER_BACKENDS': [
@@ -51,6 +51,7 @@ DJOSER = {
         'current_user': 'api.serializers.UserReadSerializer',
     },
     'HIDE_USERS': False,
+    'LOGIN_FIELD': 'email',
     'PERMISSIONS': {
         'user': ['rest_framework.permissions.IsAuthenticated'],
         'user_list': ['rest_framework.permissions.AllowAny'],
@@ -141,3 +142,19 @@ AUTH_USER_MODEL = 'users.User'
 MAX_LENGTH_EMAIL = 254
 
 MAX_LENGTH_USERNAME = 150
+
+MAX_LENGTH_AUTHOR = 200
+
+MAX_LENGTH_CONFIRMATION_CODE = 100
+
+MAX_LENGTH_RECIPE_NAME = 155
+
+MAX_LENGTH_TAG_COLOR = 7
+
+MAX_LENGTH_TAG_NAME = 200
+
+MAX_LENGTH_TAG_SLUG = 200
+
+MAX_LENGTH_INGREDIENT_NAME = 255
+
+MAX_LENGTH_INGREDIENT_MEAUNIT = 155

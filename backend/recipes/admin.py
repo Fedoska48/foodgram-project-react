@@ -13,9 +13,11 @@ class IngredientInRecipeInLine(admin.StackedInline):
 
 class RecipeAdmin(admin.ModelAdmin):
 
+    @admin.display(description='В избранном')
     def favorited_count(self):
         return Favorite.objects.filter(recipe=self.id).count()
 
+    @admin.display(description="Ингредиенты")
     def ingredient_in_recipe(self):
         return ", ".join(map(str, self.recipe_ingredients.all()))
 

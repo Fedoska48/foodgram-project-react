@@ -2,11 +2,11 @@ from django.db.models import F
 
 from djoser import serializers as ds
 from drf_extra_fields.fields import Base64ImageField
-from recipes.models import (Favorite, Ingredient, IngredientInRecipe, Recipe,
-                            ShoppingCart, Subscribe, Tag)
 from rest_framework import serializers
 from rest_framework.fields import SerializerMethodField
 
+from recipes.models import (Favorite, Ingredient, IngredientInRecipe, Recipe,
+                            ShoppingCart, Subscribe, Tag)
 from users.models import User
 
 
@@ -19,12 +19,12 @@ class UserReadSerializer(ds.UserSerializer):
     class Meta(ds.UserSerializer.Meta):
         model = User
         fields = (
-            "email",
-            "id",
-            "username",
-            "first_name",
-            "last_name",
-            "is_subscribed"
+            'email',
+            'id',
+            'username',
+            'first_name',
+            'last_name',
+            'is_subscribed'
         )
 
     def get_is_subscribed(self, user):
@@ -155,7 +155,7 @@ class RecipeReadSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         return (
             request.user.is_authenticated
-            and recipe.shopping_cart.filter(user=request.user).exists()
+            and recipe.shoppingcart.filter(user=request.user).exists()
         )
 
 
@@ -194,31 +194,31 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
     def validate(self, data):
         # униальные теги
         if len(data['tags']) != len(set(data['tags'])):
-            raise serializers.ValidationError("Теги повторяются.")
+            raise serializers.ValidationError('Теги повторяются.')
         # количество тегов больше или равно 1
         if len(data['tags']) == 0:
             raise serializers.ValidationError(
-                "Необходимо выбрать хотя бы один тег.")
+                'Необходимо выбрать хотя бы один тег.')
         # уникальыне ингредиенты
         ingredients_list = data['ingredients']
         if len(ingredients_list) != len(
                 set(obj['id'] for obj in ingredients_list)):
             raise serializers.ValidationError(
-                "Ингредиенты не должны повторяться.")
+                'Ингредиенты не должны повторяться.')
         # ингредиенты больше или равно 1
         if len(data['ingredients']) == 0:
             raise serializers.ValidationError(
-                "Необходимо добавить ингредиент."
+                'Необходимо добавить ингредиент.'
             )
         # количество ингредиентов
         if any(obj['amount'] <= 0 for obj in ingredients_list):
             raise serializers.ValidationError(
-                "Добавьте ингредиент."
+                'Введите корректное количество ингредиентов.'
             )
         # время приготовления
         if data['cooking_time'] <= 0:
             raise serializers.ValidationError(
-                "Время приготовления должно быть больше нуля."
+                'Время приготовления должно быть больше нуля.'
             )
         return super().validate(data)
 
