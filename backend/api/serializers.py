@@ -148,14 +148,14 @@ class RecipeReadSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         return (
             request.user.is_authenticated
-            and obj.favorite_set.filter(user=request.user).exists()
+            and obj.recipes_favorite_related.filter(user=request.user).exists()
         )
 
     def get_is_in_shopping_cart(self, obj):
         request = self.context.get('request')
         return (
             request.user.is_authenticated
-            and obj.shoppingcart_set.filter(user=request.user).exists()
+            and obj.recipes_shoppingcart_related.filter(user=request.user).exists()
         )
 
 

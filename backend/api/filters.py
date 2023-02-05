@@ -23,13 +23,13 @@ class RecipeFilter(django_filters.FilterSet):
 
     class Meta:
         model = Recipe
-        fields = ('tags', 'author', 'is_favorited', 'is_in_shopping_cart',)
+        fields = ('tags', 'author', 'is_in_shopping_cart',)
 
     def get_is_favorited(self, queryset, name, value):
         user = self.request.user
         if value:
             return queryset.filter(
-                favorite__user=user,
+                recipes_favorite_related__user=user,
             )
         return Recipe.objects.all()
 
@@ -37,7 +37,7 @@ class RecipeFilter(django_filters.FilterSet):
         user = self.request.user
         if value:
             return queryset.filter(
-                shopping_cart__user=user,
+                recipes_shoppingcart_related__user=user,
             )
         return Recipe.objects.all()
 
