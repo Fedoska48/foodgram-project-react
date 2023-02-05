@@ -46,11 +46,14 @@ class RecipeViewSet(viewsets.ModelViewSet):
             return Response({
                 'errors': 'Данный объект уже существует.'
             }, status.HTTP_400_BAD_REQUEST)
-        relation = model(recipe=recipe, user=user)
-        relation.save()
-        serializer = serializer(
-            get_object_or_404(model, id=pk), context={"request": request}
-        )
+        data = {
+            'user': request.user.id,
+            'recipe': recipe.id
+        }
+        context = {'request': request}
+        serializer = serializer(data=data, context=context)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @staticmethod
@@ -99,7 +102,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     @action(
         detail=True,
         methods=['POST'],
-        permission_classes=[IsAuthorOrAdminOrReadOnly]
+        permission_classes=[IsAuthenticated,]
     )
     def shopping_cart(self, request, pk):
         """Список покупок."""
@@ -117,7 +120,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     @action(
         detail=True,
         methods=['POST'],
-        permission_classes=[IsAuthorOrAdminOrReadOnly]
+        permission_classes=[IsAuthenticated,]
     )
     def favorite(self, request, pk):
         """Функционал избранных рецептов."""
