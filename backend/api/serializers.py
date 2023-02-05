@@ -278,6 +278,7 @@ class ShoppingCartSerializer(RecipeShortSerializer):
             )
         return data
 
+
 class FavoriteSerializer(RecipeShortSerializer):
     """Сериализатор избранного."""
 
@@ -287,7 +288,7 @@ class FavoriteSerializer(RecipeShortSerializer):
 
     def validate(self, data):
         user = data['user']
-        if user.афмщкшеу_set.filter(recipe=data['recipe']).exists():
+        if user.favorite_set.filter(recipe=data['recipe']).exists():
             raise serializers.ValidationError(
                 'Рецепт уже в избранном.'
             )
