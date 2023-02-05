@@ -156,7 +156,7 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
 class FoodgramUserViewSet(UserViewSet):
     """Кастомный ViewSet модели User."""
     queryset = User.objects.all()
-    permission_classes = [IsAuthenticated, ]
+    permission_classes = [AllowAny, ]
     filter_backends = [DjangoFilterBackend]
     pagination_class = StandartPagination
 
