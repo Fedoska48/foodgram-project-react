@@ -17,7 +17,7 @@ class RecipeAdmin(admin.ModelAdmin):
     def favorited_count(self):
         return Favorite.objects.filter(recipe=self.id).count()
 
-    @admin.display(description="Ингредиенты")
+    @admin.display(description='Ингредиенты')
     def ingredient_in_recipe(self):
         return ", ".join(map(str, self.recipe_ingredients.all()))
 

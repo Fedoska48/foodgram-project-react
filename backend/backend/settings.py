@@ -98,7 +98,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-TEMPLATES_DIR = os.path.join(BASE_DIR, "templates")
+TEMPLATES_DIR = os.path.join(BASE_DIR, 'templates')
 
 TEMPLATES = [
     {
