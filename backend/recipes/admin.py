@@ -27,8 +27,8 @@ class RecipeAdmin(admin.ModelAdmin):
         'name',
         'pub_date',
         'update',
-        favorited_count,
-        ingredient_in_recipe
+        'favorited_count',
+        'ingredient_in_recipe'
     )
     list_display_links = (
         'author',
