@@ -28,7 +28,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     """Кастомный вьюсет рецептов модели Recipe."""
     queryset = Recipe.objects.all()
     permission_classes = [IsAuthorOrAdminOrReadOnly]
-    filter_class = RecipeFilter
+    filterset_class = RecipeFilter
     pagination_class = StandartPagination
 
     def get_serializer_class(self):
