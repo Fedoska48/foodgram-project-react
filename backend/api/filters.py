@@ -30,7 +30,6 @@ class RecipeFilter(django_filters.FilterSet):
         if value:
             return queryset.filter(
                 recipes_favorite_related__user=user,
-                is_favorited=True
             )
         return Recipe.objects.all()
 
@@ -39,7 +38,6 @@ class RecipeFilter(django_filters.FilterSet):
         if value:
             return queryset.filter(
                 recipes_shoppingcart_related__user=user,
-                is_in_shopping_cart=True
             )
         return Recipe.objects.all()
 
