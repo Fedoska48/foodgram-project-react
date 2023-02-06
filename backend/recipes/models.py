@@ -172,13 +172,11 @@ class AbstractModel(models.Model):
         Recipe,
         on_delete=models.CASCADE,
         verbose_name='Рецепт',
-        related_name='%(app_label)s_%(class)s_related'
     )
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        verbose_name='Пользователь',
-        related_name='%(app_label)s_%(class)s_related'
+        verbose_name='Пользователь'
     )
 
     class Meta:
@@ -188,7 +186,7 @@ class AbstractModel(models.Model):
 class Favorite(AbstractModel):
     """Favorite model."""
 
-    class Meta:
+    class Meta(AbstractModel.Meta):
         verbose_name = 'Избранное'
         verbose_name_plural = 'Избранные'
         constraints = [
@@ -197,12 +195,13 @@ class Favorite(AbstractModel):
                 fields=['recipe', 'user'],
             ),
         ]
+        default_related_name = '%(app_label)s_%(class)s_related'
 
 
 class ShoppingCart(AbstractModel):
     """ShoppingCart model."""
 
-    class Meta:
+    class Meta(AbstractModel.Meta):
         verbose_name = 'Корзина покупок'
         verbose_name_plural = 'Корзины покупок'
         constraints = [
@@ -211,3 +210,4 @@ class ShoppingCart(AbstractModel):
                 fields=['recipe', 'user'],
             ),
         ]
+        default_related_name = '%(app_label)s_%(class)s_related'
