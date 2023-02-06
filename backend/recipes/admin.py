@@ -13,13 +13,16 @@ class IngredientInRecipeInLine(admin.StackedInline):
 
 class RecipeAdmin(admin.ModelAdmin):
 
-    @admin.display(description='В избранном')
+    # @admin.display(description='В избранном')
     def favorited_count(self):
         return Favorite.objects.filter(recipe=self.id).count()
 
-    @admin.display(description='Ингредиенты')
+    # @admin.display(description='Ингредиенты')
     def ingredient_in_recipe(self):
         return ", ".join(map(str, self.recipe_ingredients.all()))
+
+    favorited_count.shor_description = 'В избранном'
+    ingredient_in_recipe.short_description = 'Ингредиенты'
 
     list_display = (
         'id',
@@ -27,8 +30,8 @@ class RecipeAdmin(admin.ModelAdmin):
         'name',
         'pub_date',
         'update',
-        'favorited_count',
-        'ingredient_in_recipe'
+        favorited_count,
+        ingredient_in_recipe
     )
     list_display_links = (
         'author',
