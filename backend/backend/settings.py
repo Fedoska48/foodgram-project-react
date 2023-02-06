@@ -124,7 +124,7 @@ USE_I18N = True
 
 USE_TZ = True
 
-STATIC_ROOT = ''
+# STATIC_ROOT = ''
 
 STATIC_URL = '/static/'
 
