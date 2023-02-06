@@ -1,23 +1,23 @@
-import django_filters
-from rest_framework.filters import SearchFilter
+from django_filters.rest_framework import FilterSet, filters
 
 from recipes.models import Ingredient, Recipe, Tag
+from rest_framework.filters import SearchFilter
 
 
-class RecipeFilter(django_filters.FilterSet):
+class RecipeFilter(FilterSet):
     """Кастомный фильтр."""
-    tags = django_filters.ModelMultipleChoiceFilter(
+    tags = filters.ModelMultipleChoiceFilter(
         queryset=Tag.objects.all(),
         field_name='tags__slug',
         to_field_name='slug',
     )
-    author = django_filters.ModelMultipleChoiceFilter(
+    author = filters.ModelMultipleChoiceFilter(
         queryset=Recipe.objects.all(),
         field_name='author__id',
         to_field_name='id',
     )
-    is_favorited = django_filters.BooleanFilter(method='get_is_favorited')
-    is_in_shopping_cart = django_filters.BooleanFilter(
+    is_favorited = filters.BooleanFilter(method='get_is_favorited')
+    is_in_shopping_cart = filters.BooleanFilter(
         method='get_is_in_shopping_cart'
     )
 
