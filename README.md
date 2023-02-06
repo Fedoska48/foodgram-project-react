@@ -10,15 +10,15 @@
 
 # Технологический стек
 
-* Django 3.2.16
+* Django 3.2.9
 * djangorestframework 3.14.0
 * djoser 2.1.0
 * drf-extra-fields 3.4.1
-* gunicorn 20.1.0
-* Pillow 9.3.0
+* gunicorn 20.0.4
+* Pillow 9.4.0
 * psycopg2-binary 2.9.5
-* python-dotenv 0.21.0
-* requests 2.28.1
+* python-dotenv 0.21.1
+* requests 2.28.2
 
 # Установка
 * Клонирование репозитория:
