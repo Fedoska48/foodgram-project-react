@@ -197,11 +197,9 @@ class FoodgramUserViewSet(UserViewSet):
 
     @subscribe.mapping.delete
     def unsubscribe(self, request, id):
-        get_object_or_404(
-            Subscribe,
-            user=request.user,
-            author=get_object_or_404(User, id=id)
-        ).delete()
+        author = get_object_or_404(User, id=id)
+        user = request.user
+        get_object_or_404(Subscribe, user=user, author=author).delete()
         message = {
             'detail': f'Вы отписались от пользователя {author}'
         }
