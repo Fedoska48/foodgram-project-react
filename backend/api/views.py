@@ -53,8 +53,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     @staticmethod
     def delete_relation(request, pk, model):
-        model.objects.filter(user=request.user, recipe=get_object_or_404(
-            Recipe, pk=pk)).delete()
+        model.objects.get_object_or_404(
+            user=request.user, recipe=get_object_or_404(
+                Recipe, pk=pk)
+        ).delete()
         message = {
             'detail':
                 'Данные удалены.'
@@ -140,7 +142,7 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     """Стандартный ридонли вьюсет ингридиентов модели Ingredient."""
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
-    filter_backends = (IngredientFilter, )
+    filter_backends = (IngredientFilter,)
     search_fields = ('^name',)
     permission_classes = [AllowAny, ]
 

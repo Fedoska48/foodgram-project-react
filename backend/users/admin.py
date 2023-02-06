@@ -12,6 +12,9 @@ class UserAdmin(UserAdmin):
     def recipes_count(self, user):
         return user.recipes.count()
 
+    subscriptions_count.short_description = 'Подписок'
+    recipes_count.short_description = 'Ингредиентов'
+
     list_display = (
         'id',
         'first_name',

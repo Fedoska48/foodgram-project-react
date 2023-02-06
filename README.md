@@ -25,25 +25,7 @@
 
 git clone git@github.com:Fedoska48/foodgram-project-react.git
 
-* Создание и активация виртуального окружения:
-
-python -m venv venv
-
-source venv/Scripts/activate
-
-* Установка зависимостей requirements.txt:
-
-pip install -r requirements.txt
-
-* Миграции:
-
-python manage.py makemigrations
-
-python manage.py migrate
-
-* Запуск локального сервера:
-
-python manage.py runserver
+Предварительно необходимо установить docker и docker-compose.
 
 Из папки где находится файл docker-compose.yml необходимо запустить docker-compose:
 
@@ -81,29 +63,3 @@ docker-compose down
 Автор [Fedoska48](https://github.com/Fedoska48)
 
 41 когорта Яндекс.Практикум (Бекенд на Python)
-
-[//]: # (pip freeze > requirements.txt)
-
-[//]: # ()
-[//]: # (python manage.py createsuperuser)
-
-[//]: # ()
-[//]: # (get_queryset)
-
-[//]: # (list)
-
-[//]: # (retrieve)
-
-[//]: # (create)
-
-[//]: # (perform_create)
-
-[//]: # (update)
-
-[//]: # (perform_update)
-
-[//]: # (destroy)
-
-[//]: # ()
-[//]: # ()
-[//]: # (python manage.py makemigrations recipes --empty --name "add_tags")
