@@ -17,12 +17,11 @@ class RecipeAdmin(admin.ModelAdmin):
     def favorited_count(self):
         return Favorite.objects.filter(recipe=self.id).count()
 
-    favorited_count.shor_description = 'В избранном'
-
     # @admin.display(description='Ингредиенты')
     def ingredient_in_recipe(self):
         return ", ".join(map(str, self.recipe_ingredients.all()))
 
+    favorited_count.short_description = 'В избранном'
     ingredient_in_recipe.short_description = 'Ингредиенты'
 
     list_display = (
