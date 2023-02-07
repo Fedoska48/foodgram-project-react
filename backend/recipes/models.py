@@ -195,7 +195,7 @@ class Favorite(AbstractModel):
                 fields=['recipe', 'user'],
             ),
         ]
-        default_related_name = '%(app_label)s_%(class)s_related'
+        default_related_name = 'recipes_favorite_related'
 
 
 class ShoppingCart(AbstractModel):
@@ -210,4 +210,4 @@ class ShoppingCart(AbstractModel):
                 fields=['recipe', 'user'],
             ),
         ]
-        default_related_name = '%(app_label)s_%(class)s_related'
+        default_related_name = 'recipes_shoppingcart_related'
