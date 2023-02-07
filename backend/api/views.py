@@ -53,9 +53,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     @staticmethod
     def delete_relation(request, pk, model):
-        # с шоткатом в этом месте функция отказывается работать и выдает ошибку
-        model.objects.filter(
-            user=request.user, recipe=get_object_or_404(
+        get_object_or_404(
+            model, user=request.user, recipe=get_object_or_404(
                 Recipe, pk=pk)
         ).delete()
         message = {
