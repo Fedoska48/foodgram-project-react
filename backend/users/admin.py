@@ -13,7 +13,7 @@ class UserAdmin(UserAdmin):
         return user.recipes.count()
 
     subscriptions_count.short_description = 'Подписок'
-    recipes_count.short_description = 'Ингредиентов'
+    recipes_count.short_description = 'Рецептов'
 
     list_display = (
         'id',
